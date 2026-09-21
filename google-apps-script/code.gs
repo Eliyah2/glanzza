@@ -16,7 +16,8 @@
 const SHEET_BEDRIJVEN = 'Bedrijven';
 const SHEET_BOEKINGEN = 'Boekingen';
 const SHEET_LEADS = 'Leads';
-const CALENDAR_ID = '';   // optioneel: vaste agenda-ID, anders je standaardagenda
+const CALENDAR_ID = '';      // optioneel: vaste agenda-ID, anders je standaardagenda
+const SPREADSHEET_ID = '';   // alleen nodig als het script NIET vanuit de Sheet is gemaakt (zie uitleg)
 
 // --- lezen (boekingspagina haalt hier 1 bedrijf op) ---
 function doGet(e) {
@@ -101,10 +102,17 @@ function createCalendarEvent(d) {
   });
 }
 
+function ss() {
+  if (SPREADSHEET_ID) return SpreadsheetApp.openById(SPREADSHEET_ID);
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  throw new Error('Geen spreadsheet gevonden. Maak het script vanuit je Sheet (Extensies → Apps Script) of zet SPREADSHEET_ID in Code.gs.');
+}
+
 function sheet(name, headers) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sh = ss.getSheetByName(name);
-  if (!sh) { sh = ss.insertSheet(name); sh.appendRow(headers); }
+  const s = ss();
+  let sh = s.getSheetByName(name);
+  if (!sh) { sh = s.insertSheet(name); sh.appendRow(headers); }
   return sh;
 }
 
