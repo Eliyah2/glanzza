@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glanzza — Aanmelden als bedrijf</title>
+  <meta name="description" content="Meld je bedrijf aan en maak in 5 minuten je eigen boekingspagina met Wero-aanbetaling." />
+  <meta name="theme-color" content="#070a0e" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%2325c9a8' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .onboard { padding: clamp(40px,6vw,64px) 0 clamp(64px,9vw,104px); }
+    .onboard__card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:clamp(22px,3vw,34px); max-width:640px; margin:0 auto; }
+    .onboard__card h1 { font-size:clamp(1.6rem,3.6vw,2.2rem); margin-bottom:8px; }
+    .onboard__sub { color:var(--dim); margin-bottom:26px; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .svc { border:1px solid var(--border); border-radius:var(--r-sm); padding:14px; margin-bottom:10px; background:var(--bg-1); }
+    .svc__row { display:grid; grid-template-columns:1fr 90px 80px 34px; gap:8px; align-items:center; }
+    .svc__row input { width:100%; padding:10px 12px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:.92rem; }
+    .svc__row input:focus { outline:none; border-color:var(--brand); }
+    .svc__del { width:34px; height:34px; border-radius:9px; border:1px solid var(--border); color:var(--mute); font-size:1.1rem; display:flex; align-items:center; justify-content:center; }
+    .svc__del:hover { color:var(--danger); border-color:var(--danger); }
+    .add-svc { display:inline-flex; align-items:center; gap:7px; color:var(--brand); font-weight:600; font-size:.9rem; margin:4px 0 20px; }
+    .done { display:none; margin-top:22px; padding:18px; border-radius:var(--r); background:var(--brand-soft); border:1px solid rgba(37,201,168,.4); }
+    .done.show { display:block; animation:fade .3s ease; }
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .link-box { display:flex; gap:8px; margin:12px 0; align-items:center; }
+    .link-box input { flex:1; padding:11px 12px; border-radius:9px; border:1px solid var(--border); background:var(--bg-1); color:var(--text); font-size:.9rem; }
+    @media (max-width:520px){ .svc__row{grid-template-columns:1fr 1fr 34px} .svc__row input:nth-child(3){grid-column:1/-1} .row2{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Naar de inhoud</a>
+
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="brand" href="index.html"><svg class="brand__mark" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z" fill="#25c9a8"/></svg>Glan<span>zza</span></a>
+      <a class="btn btn--ghost" href="index.html" style="padding:9px 16px;font-size:.88rem">← Terug</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="onboard">
+      <div class="container">
+        <div class="onboard__card">
+          <h1>Start met Glanzza</h1>
+          <p class="onboard__sub">Vul je bedrijfsgegevens in en krijg direct je eigen boekingspagina met Wero-aanbetaling. Alleen jij ziet jouw gegevens.</p>
+
+          <form id="onboard-form" novalidate>
+            <div class="field">
+              <label for="naam">Bedrijfsnaam</label>
+              <input id="naam" name="naam" type="text" placeholder="Bijv. GlansDetailing Venlo" required />
+              <span class="field__err" data-for="naam"></span>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="linknaam">Linknaam (voor je link)</label>
+                <input id="linknaam" name="id" type="text" placeholder="glansdetailing-venlo" required />
+                <span class="field__err" data-for="id"></span>
+              </div>
+              <div class="field">
+                <label for="aanbetaling">Aanbetaling (€)</label>
+                <input id="aanbetaling" name="aanbetaling" type="number" min="0" step="1" value="50" required />
+              </div>
+            </div>
+            <div class="field">
+              <label for="betaalLink">Wero / Tikkie-betaallink (optioneel)</label>
+              <input id="betaalLink" name="betaalLink" type="url" placeholder="https://tikkie.me/..." />
+            </div>
+
+            <div class="field">
+              <label>Diensten &amp; prijzen</label>
+              <div id="diensten"></div>
+              <button type="button" class="add-svc" id="add-svc">＋ Dienst toevoegen</button>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--block" id="submit">Maak mijn pagina →</button>
+            <p class="status" id="status" role="status" aria-live="polite"></p>
+          </form>
+
+          <div class="done" id="done">
+            <b style="color:var(--brand-3)">Je pagina is klaar! 🎉</b>
+            <p style="margin:8px 0;color:var(--dim)">Deel deze link met je klanten. Boekingen komen automatisch bij jou binnen.</p>
+            <div class="link-box">
+              <input id="done-link" readonly />
+              <button type="button" class="btn btn--ghost" id="copy-btn" style="padding:10px 16px">Kopieer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" style="padding:28px 0">
+    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div>
+  </footer>
+
+  <script>
+  (function () {
+    "use strict";
+    // === VUL IN: jouw centrale Apps Script web-app URL ===
+    var CENTRAL_URL = "";
+    // ====================================================
+
+    var naam = document.getElementById("naam");
+    var linknaam = document.getElementById("linknaam");
+    var dienstenBox = document.getElementById("diensten");
+
+    function slugify(s) {
+      return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    }
+    naam.addEventListener("input", function () {
+      if (!linknaam.dataset.touched) linknaam.value = slugify(naam.value);
+    });
+    linknaam.addEventListener("input", function () { linknaam.dataset.touched = "1"; });
+
+    function serviceRow() {
+      var el = document.createElement("div");
+      el.className = "svc";
+      el.innerHTML =
+        '<div class="svc__row">' +
+        '<input class="svc-naam" placeholder="Dienstnaam (bijv. Knippen)">' +
+        '<input class="svc-prijs" type="number" min="0" placeholder="€ prijs">' +
+        '<input class="svc-duur" type="number" min="5" step="5" placeholder="min">' +
+        '<button type="button" class="svc__del" aria-label="Dienst verwijderen">×</button>' +
+        '</div>';
+      el.querySelector(".svc__del").addEventListener("click", function () { el.remove(); });
+      return el;
+    }
+    document.getElementById("add-svc").addEventListener("click", function () { dienstenBox.appendChild(serviceRow()); });
+    dienstenBox.appendChild(serviceRow());
+
+    var form = document.getElementById("onboard-form");
+    var status = document.getElementById("status");
+    var done = document.getElementById("done");
+
+    function setErr(name, msg) {
+      var el = form.querySelector('.field__err[data-for="' + name + '"]');
+      var input = form.querySelector('[name="' + name + '"]');
+      if (el) el.textContent = msg || "";
+      if (input) input.setAttribute("aria-invalid", msg ? "true" : "false");
+    }
+
+    function checkSlug(id, cb) {
+      if (!CENTRAL_URL) { cb(false); return; }
+      var n = "__glanzza_chk_" + Date.now();
+      window[n] = function (data) { try { cb(!!(data && data.gevonden)); } finally { delete window[n]; } };
+      var s = document.createElement("script");
+      s.src = CENTRAL_URL + "?bedrijf=" + encodeURIComponent(id) + "&callback=" + n;
+      s.onerror = function () { cb(false); };
+      document.head.appendChild(s);
+    }
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      setErr("naam"); setErr("id");
+      var id = slugify(linknaam.value.trim());
+      var ok = true;
+      if (!naam.value.trim()) { setErr("naam", "Vul je bedrijfsnaam in."); ok = false; }
+      if (!id) { setErr("id", "Vul een geldige linknaam in (alleen letters en cijfers)."); ok = false; }
+
+      var aanb = Number(document.getElementById("aanbetaling").value);
+      if (isNaN(aanb) || aanb < 0) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een geldige aanbetaling in (0 of hoger)."; ok = false; }
+
+      var diensten = [];
+      dienstenBox.querySelectorAll(".svc").forEach(function (row) {
+        var n = row.querySelector(".svc-naam").value.trim();
+        var p = row.querySelector(".svc-prijs").value;
+        var d = row.querySelector(".svc-duur").value;
+        if (n && p) diensten.push({ naam: n, prijs: Number(p) || 0, duur: Number(d) || 60 });
+      });
+      if (diensten.length === 0) {
+        status.setAttribute("data-state", "err");
+        status.textContent = "⚠️ Voeg minimaal één dienst toe (met naam en prijs).";
+        ok = false;
+      }
+      if (!ok) return;
+
+      if (!CENTRAL_URL) {
+        status.setAttribute("data-state", "err");
+        status.textContent = "⚠️ Nog niet gekoppeld: vul CENTRAL_URL in (onboarding.html).";
+        return;
+      }
+
+      checkSlug(id, function (taken) {
+        if (taken) {
+          setErr("id", "Deze linknaam is al in gebruik. Kies een andere.");
+          return;
+        }
+        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), diensten: diensten });
+      });
+    });
+
+    async function doSubmit(data) {
+      var btn = document.getElementById("submit");
+      btn.setAttribute("aria-disabled", "true");
+      status.setAttribute("data-state", "busy");
+      status.textContent = "Opslaan…";
+      try {
+        await fetch(CENTRAL_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(Object.assign({ type: "onboard" }, data)),
+        });
+        status.setAttribute("data-state", "ok");
+        status.textContent = "✅ Opgeslagen!";
+        var link = location.origin + location.pathname.replace(/onboarding\.html.*$/, "boeken.html?bedrijf=" + encodeURIComponent(data.id));
+        document.getElementById("done-link").value = link;
+        done.classList.add("show");
+        form.style.display = "none";
+      } catch (err) {
+        status.setAttribute("data-state", "err");
+        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw.";
+      } finally {
+        btn.removeAttribute("aria-disabled");
+      }
+    }
+
+    document.getElementById("copy-btn").addEventListener("click", function () {
+      var inp = document.getElementById("done-link");
+      inp.select();
+      try { navigator.clipboard.writeText(inp.value); } catch (e) { document.execCommand("copy"); }
+      this.textContent = "Gekopieerd ✓";
+    });
+  })();
+  </script>
+</body>
+</html>
