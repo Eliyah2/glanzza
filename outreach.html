@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glanzza — Outreach-helper</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#070a0e" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .oh { padding: clamp(32px,5vw,56px) 0 80px; }
+    .oh__head { margin-bottom: 24px; }
+    .oh__head h1 { font-size: clamp(1.5rem,3.4vw,2.1rem); margin-bottom: 8px; }
+    .oh__head p { color: var(--dim); max-width: 680px; }
+    .oh__bar { display:flex; gap:16px; flex-wrap:wrap; margin:18px 0 26px; color:var(--mute); font-size:.9rem; }
+    .oh__bar b { color: var(--brand); }
+    .lead { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px; margin-bottom:14px; }
+    .lead--done { opacity:.5; }
+    .lead__top { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+    .lead__name { font-weight:700; font-size:1.05rem; }
+    .lead__meta { color:var(--mute); font-size:.85rem; margin-top:2px; }
+    .lead__mail { color:var(--brand); font-size:.9rem; text-decoration:none; }
+    .lead__body { margin:14px 0; padding:14px; border-radius:10px; background:var(--bg-1); border:1px solid var(--border); color:var(--dim); font-size:.92rem; white-space:pre-wrap; }
+    .lead__subj { font-size:.85rem; color:var(--mute); margin-bottom:6px; }
+    .lead__subj b { color:var(--text); font-weight:600; }
+    .lead__acts { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .btn--sm { padding:9px 15px; font-size:.88rem; }
+    .lead__done { display:flex; align-items:center; gap:7px; color:var(--mute); font-size:.86rem; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="brand" href="index.html"><svg class="brand__mark" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z" fill="#c9f24d"/></svg>Glan<span>zza</span></a>
+      <a class="btn btn--ghost" href="index.html" style="padding:9px 16px;font-size:.88rem">← Terug</a>
+    </div>
+  </header>
+
+  <main class="oh">
+    <div class="container">
+      <div class="oh__head">
+        <h1>Outreach-helper</h1>
+        <p>Eén klik per bedrijf: de mail staat klaar, jij drukt op <b>verzenden</b> in je eigen mail-app. Verstuur er 3–5 per dag. Vink af wat je verstuurd hebt (wordt opgeslagen).</p>
+      </div>
+      <div class="oh__bar">
+        <span>Verstuurd: <b id="cnt">0</b> / <b id="tot">0</b></span>
+        <span>·</span>
+        <span>Tip: personaliseer gerust een detail (recente post, hun diensten).</span>
+      </div>
+      <div id="list"></div>
+      <p style="margin-top:26px;color:var(--mute);font-size:.85rem">Zet onderaan elke mail: <i>"Wil je geen bericht meer? Antwoord 'stop'."</i></p>
+    </div>
+  </main>
+
+  <footer class="footer" style="padding:28px 0">
+    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div>
+  </footer>
+
+  <script>
+  (function () {
+    "use strict";
+    var LEADS = [
+      { n: "Trimsalon Nono", s: "Trimsalon", c: "(NL)", e: "info@trimsalonnono.nl", o: "jullie no-show-beleid — mag ik hierover sparren?", b: "Hoi, ik zag dat Trimsalon Nono een duidelijk no-show-beleid heeft — jullie hebben dus al gemerkt dat het geld kost. Ik bouw een simpele boekingspagina met iDEAL-aanbetaling, zodat no-shows automatisch verdwijnen (klant betaalt bij het boeken). Mag ik jullie 5 minuten vragen hoe jullie dit nu aanpakken?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Hondentrimsalon Murphy", s: "Trimsalon", c: "Geleen", e: "info@hondentrimsalonmurphy.nl", o: "agenda vol, no-shows eruit?", b: "Hoi, ik zag Hondentrimsalon Murphy in Geleen. Hoe plannen jullie de afspraken nu — telefoon, WhatsApp of online? En vragen jullie een aanbetaling? Ik bouw een simpele Nederlandstalige boekingspagina met iDEAL-aanbetaling. Mag ik 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Jixer's Trimsalon", s: "Trimsalon", c: "Geleen", e: "info@jixers.nl", o: "afspraken zonder gedoe", b: "Hoi, ik zag Jixer's Trimsalon in Geleen. Mag ik één korte vraag stellen over hoe jullie afspraken plannen en wat no-shows jullie kosten? Ik bouw daar een simpele oplossing voor (online boeken + aanbetaling). 5 minuten sparren zou top zijn.\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Hondentrimsalon Spaubeek", s: "Trimsalon", c: "Spaubeek", e: "info@hondentrimsalonspaubeek.nl", o: "klanten die niet komen opdagen", b: "Hoi, ik zag Hondentrimsalon Spaubeek. Hoe gaan jullie om met no-shows? Ik bouw een eenvoudige boekingssite met iDEAL-aanbetaling voor lokale afspraakbedrijven. Ik zoek feedback van echte ondernemers — 5 minuutjes?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Trimsalon Het Hondje", s: "Trimsalon", c: "Landgraaf", e: "info@trimsalonhethondje.nl", o: "online afspraken voor Trimsalon Het Hondje", b: "Hoi, ik zag Trimsalon Het Hondje in Landgraaf. Mag ik één vraag stellen: hoe komen afspraken nu bij jullie binnen, en hoe vaak komt iemand niet opdagen? Ik bouw een tool waarmee klanten 24/7 boeken én een aanbetaling doen. Zou je 5 minuten willen sparren?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Trimsalon Hond & Hip", s: "Trimsalon", c: "Zuid-Limburg", e: "info@hondenhip.nl", o: "online boeken + aanbetaling", b: "Hoi, ik zag Trimsalon Hond & Hip. Hoe komen afspraken nu bij jullie binnen? En hoe vaak komt iemand niet? Ik bouw een boekingssite met iDEAL-aanbetaling voor lokale bedrijven. Zou je 5 minuten willen sparren?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Happy Dog Trimsalon", s: "Trimsalon", c: "Venlo", e: "info@happydogvenlo.nl", o: "trimsalon-agenda + no-shows", b: "Hoi, ik zag Happy Dog Trimsalon in Venlo. Een no-show kost je zo een groot deel van je dag. Hoe plannen jullie nu, en vragen jullie een aanbetaling? Ik bouw een simpele boekingspagina met aanbetaling. 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Trimsalon Make It Easy", s: "Trimsalon", c: "(NL)", e: "coatcare@outlook.com", o: "no-shows bij de trimsalon", b: "Hoi, ik zag dat jullie afspraken via WhatsApp en e-mail regelen. Mag ik vragen: kosten no-shows jullie weleens een plek in de agenda? Ik bouw een simpele tool waarmee klanten online boeken én een aanbetaling doen. 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Brilliant Detailing", s: "Detailing", c: "Venlo", e: "info@brilliantdetailing.eu", o: "no-shows bij Brilliant Detailing", b: "Hoi, ik zag Brilliant Detailing in Venlo (Vasco da Gamaweg). Hoe plannen klanten nu een afspraak — telefoon, WhatsApp of online? En kosten no-shows jullie weleens een dagdeel? Ik bouw een simpele Nederlandstalige boekingspagina met iDEAL-aanbetaling. 5 minuten feedback zou me al helpen.\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Hair & Looks (Roermond)", s: "Kapsalon", c: "Roermond", e: "roermond-centrum@hairandlooks.nl", o: "kapsalon-agenda + iDEAL-aanbetaling", b: "Hoi, ik zag Hair & Looks in Roermond. Hoe vangen jullie no-shows op? Ik bouw een Nederlandstalige boekingspagina met iDEAL-aanbetaling voor lokale afspraakbedrijven (kappers, trimsalons, salons). Ik zoek feedback — 5 minuten?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Kop Sittard", s: "Kapsalon", c: "Sittard", e: "info@kopsittard.nl", o: "afspraken plannen in Sittard", b: "Hoi, ik zag Kop in Sittard. Mag ik één vraag stellen: hoe komen boekingen bij jullie binnen, en hoe vaak komt iemand niet opdagen? Ik bouw een simpele boekingssite met iDEAL-aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Schoonheidsinstituut Pour Vous", s: "Schoonheidssalon", c: "Roermond", e: "mail@pourvousschoonheidsinstituut.nl", o: "no-shows bij Pour Vous", b: "Hoi, ik zag Schoonheidsinstituut Pour Vous in Roermond. Hoe gaan jullie om met klanten die niet komen opdagen? Ik bouw een eenvoudige boekingspagina met iDEAL-aanbetaling voor lokale afspraakbedrijven. Mag ik je 5 minuten om feedback vragen?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Carwash Number 1", s: "Carwash", c: "Roermond", e: "info@carwashnumber1.nl", o: "no-shows bij Carwash Number 1", b: "Hoi, ik zag Carwash Number 1 in Roermond. Mag ik één korte vraag stellen? Hoe plannen klanten nu een afspraak — telefoon, WhatsApp of online? En kosten no-shows jullie weleens een dagdeel? Ik bouw een simpele tool waarmee klanten online boeken én een iDEAL-aanbetaling doen. 5 minuten feedback zou me al helpen.\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Carwash Roermond", s: "Carwash", c: "Roermond", e: "info@carwash-roermond.nl", o: "online boeken + aanbetaling", b: "Hoi, hoe vangen jullie no-shows nu op? Ik bouw een Nederlandstalige boekingspagina met iDEAL-aanbetaling speciaal voor lokale bedrijven. Mag ik jullie 5 minuten vragen stellen — geen verkoop, puur feedback?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "Claro Carwash", s: "Carwash", c: "Roermond", e: "info@claro-carwash.com", o: "klanten die niet komen opdagen", b: "Hoi, even een vraag aan Claro Carwash. Hoeveel klanten komen er per maand niet opdagen, en vragen jullie een aanbetaling? Ik bouw een simpele tool die dat oplost (online boeken + iDEAL-aanbetaling). Zou je daar 5 minuten over willen sparren?\n\nGroet,\nEliyah — Glanzza" },
+      { n: "WasArena (bij Wealer)", s: "Carwash/poets", c: "Venlo", e: "info@dewasarena.nl", o: "poets-afspraken plannen zonder gedoe", b: "Hoi, ik zag WasArena bij Wealer in Venlo. Hoe komen poets-afspraken nu bij jullie binnen? En hoe gaan jullie om met klanten die niet komen? Ik bouw een boekingssite met iDEAL-aanbetaling voor lokale bedrijven. Mag ik jullie 5 minuten om feedback vragen?\n\nGroet,\nEliyah — Glanzza" }
+    ];
+
+    var AMP = String.fromCharCode(38);
+    var SLEUTEL_SUBJ = "sub" + "ject";
+    var SLEUTEL_BODY = "bo" + "dy";
+
+    function mailHref(L) {
+      return "mailto:" + encodeURIComponent(L.e) + "?" + SLEUTEL_SUBJ + "=" + encodeURIComponent(L.o) + AMP + SLEUTEL_BODY + "=" + encodeURIComponent(L.b);
+    }
+
+    var KEY = "glanzza_verzonden";
+    var sent = {};
+    try { sent = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { sent = {}; }
+
+    var list = document.getElementById("list");
+    document.getElementById("tot").textContent = LEADS.length;
+
+    LEADS.forEach(function (L) {
+      var el = document.createElement("div");
+      el.className = "lead" + (sent[L.e] ? " lead--done" : "");
+      var wrap = document.createElement("div");
+      wrap.innerHTML =
+        '<div class="lead__top">' +
+          '<div><div class="lead__name"></div><div class="lead__meta"></div></div>' +
+          '<a class="lead__mail"></a>' +
+        '</div>' +
+        '<div class="lead__body"><div class="lead__subj">Onderwerp: <b></b></div><span class="lead__tekst"></span></div>' +
+        '<div class="lead__acts">' +
+          '<a class="btn btn--primary btn--sm" href="#">Open mail-app →</a>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-copy>Kopieer mail</button>' +
+          '<label class="lead__done"><input type="checkbox" data-done> verzonden</label>' +
+        '</div>';
+      wrap.querySelector(".lead__name").textContent = L.n;
+      wrap.querySelector(".lead__meta").textContent = L.s + " · " + L.c;
+      var a = wrap.querySelector(".lead__mail"); a.textContent = L.e; a.href = "mailto:" + L.e;
+      wrap.querySelector(".lead__subj b").textContent = L.o;
+      wrap.querySelector(".lead__tekst").textContent = L.b;
+      wrap.querySelector(".btn--primary").href = mailHref(L);
+      var cb = wrap.querySelector("[data-copy]");
+      cb.dataset.copy = encodeURIComponent(L.e) + "|" + encodeURIComponent(L.o) + "|" + encodeURIComponent(L.b);
+      var done = wrap.querySelector("[data-done]");
+      done.dataset.done = L.e; done.checked = !!sent[L.e];
+      el.appendChild(wrap);
+      list.appendChild(el);
+    });
+
+    function upd() {
+      var n = 0;
+      document.querySelectorAll("[data-done]").forEach(function (c) { if (c.checked) n++; });
+      document.getElementById("cnt").textContent = n;
+    }
+    upd();
+
+    list.addEventListener("change", function (e) {
+      var c = e.target.closest("[data-done]"); if (!c) return;
+      sent[c.dataset.done] = c.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(sent)); } catch (err) {}
+      c.closest(".lead").classList.toggle("lead--done", c.checked);
+      upd();
+    });
+    list.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-copy]"); if (!b) return;
+      var p = b.dataset.copy.split("|").map(decodeURIComponent);
+      var txt = "Aan: " + p[0] + "\nOnderwerp: " + p[1] + "\n\n" + p[2];
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () { b.textContent = "Gekopieerd ✓"; }, function () { b.textContent = "Kopieer handmatig"; });
+      } else { b.textContent = "Kopieer handmatig"; }
+    });
+  })();
+  </script>
+</body>
+</html>
