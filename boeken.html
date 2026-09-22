@@ -230,6 +230,11 @@
         document.getElementById("side").style.display = "none";
         return;
       }
+      if (String(data.status || "").toLowerCase() !== "actief") {
+        loading.textContent = "⏳ Deze boekingspagina is nog niet actief. Neem contact op met het bedrijf.";
+        document.getElementById("side").style.display = "none";
+        return;
+      }
       render(data);
     });
 

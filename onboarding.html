@@ -44,7 +44,7 @@
       <div class="container">
         <div class="onboard__card">
           <h1>Start met Glanzza</h1>
-          <p class="onboard__sub">Vul je bedrijfsgegevens in en krijg direct je eigen boekingspagina met Wero-aanbetaling. Alleen jij ziet jouw gegevens.</p>
+          <p class="onboard__sub">Vul je bedrijfsgegevens in en zet je eigen boekingspagina op — geactiveerd zodra je eerste betaling binnen is. Alleen jij ziet jouw gegevens.</p>
 
           <form id="onboard-form" novalidate>
             <div class="field">
@@ -78,13 +78,15 @@
               <button type="button" class="add-svc" id="add-svc">＋ Dienst toevoegen</button>
             </div>
 
-            <button type="submit" class="btn btn--primary btn--block" id="submit">Maak mijn pagina →</button>
+            <button type="submit" class="btn btn--primary btn--block" id="submit">Aanmelden →</button>
             <p class="status" id="status" role="status" aria-live="polite"></p>
           </form>
 
           <div class="done" id="done">
-            <b style="color:var(--brand-3)">Je pagina is klaar! 🎉</b>
-            <p style="margin:8px 0;color:var(--dim)">Deel deze link met je klanten. Boekingen komen automatisch bij jou binnen.</p>
+            <b style="color:var(--brand-3)">Aanmelding ontvangen! 🎉</b>
+            <p style="margin:8px 0;color:var(--dim)">Betaal je eerste maand om je pagina te activeren. Zodra je betaling binnen is, zetten we je pagina live en krijg je een mail met je boekingslink.</p>
+            <a class="btn btn--primary" id="betaal-link" href="#" target="_blank" rel="noopener" style="margin:8px 0 14px">Betaal je eerste maand →</a>
+            <p style="margin:4px 0;color:var(--mute);font-size:.85rem">Jouw boekingslink (actief na betaling):</p>
             <div class="link-box">
               <input id="done-link" readonly />
               <button type="button" class="btn btn--ghost" id="copy-btn" style="padding:10px 16px">Kopieer</button>
@@ -105,6 +107,10 @@
     // === VUL IN: jouw centrale Apps Script web-app URL ===
     var CENTRAL_URL = "https://script.google.com/macros/s/AKfycbzWPoe8aoStJ-lzgUvafzEZyal48CFRmQwj3rptBCzFCVVZvSt_YogooWQdH08fddEA5A/exec";
     // ====================================================
+
+    // === Jouw betaallink (Tikkie/Wero) — hiermee betalen bedrijven hun eerste maand ===
+    var BETAAL_LINK = "";
+    // ================================================================================
 
     var naam = document.getElementById("naam");
     var linknaam = document.getElementById("linknaam");
@@ -209,9 +215,11 @@
           body: JSON.stringify(Object.assign({ type: "onboard" }, data)),
         });
         status.setAttribute("data-state", "ok");
-        status.textContent = "✅ Opgeslagen!";
+        status.textContent = "✅ Aanmelding opgeslagen!";
         var link = location.origin + location.pathname.replace(/onboarding\.html.*$/, "boeken.html?bedrijf=" + encodeURIComponent(data.id));
         document.getElementById("done-link").value = link;
+        var pb = document.getElementById("betaal-link");
+        if (BETAAL_LINK) { pb.href = BETAAL_LINK; } else { pb.href = "#"; pb.textContent = "Betaal je eerste maand (we nemen contact op)"; }
         done.classList.add("show");
         form.style.display = "none";
       } catch (err) {

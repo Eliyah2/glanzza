@@ -1,25 +1,24 @@
 // ============================================================
 //  Glanzza — centrale backend (Google Apps Script)
 //  Eén centrale Google Sheet + dit script bedienen ALLE bedrijven.
-//  Gegevens zijn AFGESCHERMD: de boekingspagina krijgt alleen het
-//  bedrijf dat in de link staat (?bedrijf=<id>).
+//  Flow: aanmelding = 'wacht' → jij laat betalen → Status op 'actief'
+//        → systeem maakt automatisch Sheet + Agenda aan en mailt het bedrijf.
 //
 //  SETUP (eenmalig):
-//  1. Maak een Google Sheet aan.
-//  2. Extensies → Apps Script → plak deze code → Sla op.
-//  3. Implementeren → Nieuwe implementatie → Web-app:
-//       Uitvoeren als: "Ik"  |  Toegang: "Iedereen"
-//  4. Kopieer de Web-app-URL. Dit is jouw CENTRALE URL.
-//     Die vul je in boeken.html, onboarding.html en main.js in.
+//  1. Google Sheet + Extensies → Apps Script → plak deze code.
+//  2. Services → Google Calendar API → Toevoegen (voor het delen van agenda's).
+//  3. Implementeren → Nieuwe implementatie → Web-app (Uitvoeren als: Ik, Toegang: Iedereen).
 // ============================================================
 
 const SHEET_BEDRIJVEN = 'Bedrijven';
 const SHEET_BOEKINGEN = 'Boekingen';
 const SHEET_LEADS = 'Leads';
-const CALENDAR_ID = '';      // optioneel: vaste agenda-ID, anders je standaardagenda
-const SPREADSHEET_ID = '';   // alleen nodig als het script NIET vanuit de Sheet is gemaakt (zie uitleg)
+const CALENDAR_ID = '';                            // optioneel: vaste agenda-ID
+const SPREADSHEET_ID = '';                         // alleen nodig als het script niet aan de Sheet hangt
+const SITE_URL = 'https://glanzza.vercel.app';     // jouw site (voor links in e-mails)
+const STATUS_KOLOM = 9;                            // kolom I = Status in "Bedrijven"
 
-// Kolommen van de boekingen-sheet (zowel centraal als per bedrijf)
+const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status'];
 const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Voertuig', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus'];
 
 // --- lezen (boekingspagina haalt hier 1 bedrijf op) ---
@@ -27,12 +26,10 @@ function doGet(e) {
   const id = e.parameter.bedrijf || '';
   const callback = e.parameter.callback || '';
   const data = getBusiness(id);
-  if (data && data.gevonden) { delete data.email; delete data.sheetId; delete data.calendarId; }   // PRIVÉ: niets gevoeligs naar de publieke pagina sturen
+  if (data && data.gevonden) { delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; }
   const json = JSON.stringify(data);
   if (callback) {
-    // JSONP: werkt zonder CORS-gedoe
-    return ContentService.createTextOutput(callback + '(' + json + ')')
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    return ContentService.createTextOutput(callback + '(' + json + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
   return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }
@@ -51,20 +48,24 @@ function doPost(e) {
 }
 
 function getBusiness(id) {
-  const rows = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID']).getDataRange().getValues();
+  const sh = sheet(SHEET_BEDRIJVEN, BEDRIJF_KOLOMMEN);
+  const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === id) {
-      return {
-        gevonden: true,
-        id: rows[i][0],
-        naam: rows[i][1],
-        aanbetaling: Number(rows[i][2]) || 0,
-        betaalLink: rows[i][3] || '',
-        diensten: safeJson(rows[i][4]),
-        email: String(rows[i][5] || ''),
-        sheetId: String(rows[i][6] || ''),
-        calendarId: String(rows[i][7] || '')
+      const b = {
+        gevonden: true, row: i + 1,
+        id: rows[i][0], naam: rows[i][1], aanbetaling: Number(rows[i][2]) || 0,
+        betaalLink: rows[i][3] || '', diensten: safeJson(rows[i][4]),
+        email: String(rows[i][5] || ''), sheetId: String(rows[i][6] || ''),
+        calendarId: String(rows[i][7] || ''), status: String(rows[i][8] || '')
       };
+      // Lazy-activatie: Status = 'actief' maar nog geen Sheet/Agenda? → nu aanmaken.
+      if (b.status.toLowerCase() === 'actief' && (!b.sheetId || !b.calendarId)) {
+        try { activateBusiness(sh, i + 1); } catch (e) {}
+        const r2 = sh.getRange(i + 1, 1, 1, BEDRIJF_KOLOMMEN.length).getValues()[0];
+        b.sheetId = String(r2[6] || ''); b.calendarId = String(r2[7] || '');
+      }
+      return b;
     }
   }
   return { gevonden: false };
@@ -74,38 +75,64 @@ function addBusiness(d) {
   const id = String(d.id || '').trim();
   const naam = String(d.naam || '').trim();
   if (!id || !naam) return;
-  const sh = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID']);
-  // Voorkom overschrijven: als dit id al bestaat, niets doen.
+  const sh = sheet(SHEET_BEDRIJVEN, BEDRIJF_KOLOMMEN);
   const rows = sh.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === id) return;
-  }
+  for (let i = 1; i < rows.length; i++) { if (String(rows[i][0]) === id) return; }
   const diensten = (Array.isArray(d.diensten) ? d.diensten : [])
     .filter(function (s) { return s && s.naam; })
     .map(function (s) { return { naam: String(s.naam).trim(), prijs: Number(s.prijs) || 0, duur: Number(s.duur) || 60 }; });
-
   const email = String(d.email || '').trim();
-
-  // 1) Eigen, afgeschermde Google Sheet per bedrijf (automatisch)
-  let sheetId = '';
+  // Aanmelding = 'wacht'. Sheet + Agenda worden pas NA betaling aangemaakt.
+  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, '', '', 'wacht']);
   try {
-    const ss = SpreadsheetApp.create('Glanzza boekingen — ' + naam);
-    const tab = ss.getSheets()[0];
-    tab.setName(SHEET_BOEKINGEN);
-    tab.appendRow(BOEK_KOLOMMEN);
-    sheetId = ss.getId();
-    if (email) { try { ss.addEditor(email); } catch (e) {} }
-  } catch (e) { sheetId = ''; }
+    MailApp.sendEmail({
+      to: Session.getEffectiveUser().getEmail(),
+      subject: 'Nieuwe aanmelding: ' + naam,
+      body: 'Nieuwe aanmelding op Glanzza.\n\nBedrijf: ' + naam + '\nLinknaam: ' + id + '\nE-mail: ' + email +
+        '\n\nActie: laat betalen. Zet daarna in de tab "Bedrijven" de Status van deze rij op "actief" — het systeem maakt dan automatisch de Sheet + Agenda aan en mailt het bedrijf zijn link.'
+    });
+  } catch (e) {}
+}
 
-  // 2) Eigen Google Agenda per bedrijf (automatisch, wordt gedeeld met het bedrijf)
-  let calendarId = '';
-  try {
-    const cal = CalendarApp.createCalendar('Glanzza agenda — ' + naam);
-    calendarId = cal.getId();
-    if (email) { try { Calendar.Acl.insert({ role: 'writer', scope: { type: 'user', value: email } }, calendarId); } catch (e) {} }
-  } catch (e) { calendarId = ''; }
+// Activeert een bedrijf: maakt eigen Sheet + Agenda aan, deelt ze, mailt het bedrijf.
+function activateBusiness(sh, row) {
+  const id = String(sh.getRange(row, 1).getValue() || '');
+  const naam = String(sh.getRange(row, 2).getValue() || '');
+  const email = String(sh.getRange(row, 6).getValue() || '').trim();
 
-  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, sheetId, calendarId]);
+  let sheetId = String(sh.getRange(row, 7).getValue() || '');
+  if (!sheetId) {
+    try {
+      const ss = SpreadsheetApp.create('Glanzza boekingen — ' + naam);
+      const tab = ss.getSheets()[0]; tab.setName(SHEET_BOEKINGEN); tab.appendRow(BOEK_KOLOMMEN);
+      sheetId = ss.getId(); sh.getRange(row, 7).setValue(sheetId);
+      if (email) { try { ss.addEditor(email); } catch (err) {} }
+    } catch (err) {}
+  }
+
+  let calendarId = String(sh.getRange(row, 8).getValue() || '');
+  if (!calendarId) {
+    try {
+      const cal = CalendarApp.createCalendar('Glanzza agenda — ' + naam);
+      calendarId = cal.getId(); sh.getRange(row, 8).setValue(calendarId);
+      if (email) { try { Calendar.Acl.insert({ role: 'writer', scope: { type: 'user', value: email } }, calendarId); } catch (err) {} }
+    } catch (err) {}
+  }
+
+  if (String(sh.getRange(row, STATUS_KOLOM).getValue()).toLowerCase() !== 'actief') {
+    sh.getRange(row, STATUS_KOLOM).setValue('actief');
+  }
+
+  if (email) {
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: 'Je Glanzza-pagina is actief! 🎉',
+        body: 'Hoi ' + naam + ',\n\nJe betaling is ontvangen — je boekingspagina staat nu live.\n\nJe boekingslink:\n' + SITE_URL + '/boeken.html?bedrijf=' + id +
+          '\n\nJe ontvangt ook een eigen Google Sheet + Agenda (met je gedeeld).\n\nSucces!\nGlanzza'
+      });
+    } catch (err) {}
+  }
 }
 
 function addLead(d) {
@@ -114,27 +141,27 @@ function addLead(d) {
 }
 
 function addBooking(d) {
-  if (!d.naam || !d.dienst || !d.datum || !d.tijd) return;   // verplichte velden
-  const row = [new Date(), d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand'];
+  if (!d.naam || !d.dienst || !d.datum || !d.tijd) return;         // verplichte velden
   const b = getBusiness(d.bedrijf);
+  if (!b || !b.gevonden || b.status.toLowerCase() !== 'actief') return;  // alleen actieve bedrijven
+
+  const row = [new Date(), d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand'];
   let written = false;
-  // Bij voorkeur naar de EIGEN sheet van dit bedrijf
-  if (b && b.gevonden && b.sheetId) {
+  if (b.sheetId) {
     try {
       const target = SpreadsheetApp.openById(b.sheetId);
       let t = target.getSheetByName(SHEET_BOEKINGEN);
       if (!t) { t = target.insertSheet(SHEET_BOEKINGEN); t.appendRow(BOEK_KOLOMMEN); }
-      t.appendRow(row);
-      written = true;
+      t.appendRow(row); written = true;
     } catch (e) { written = false; }
   }
   if (!written) {
-    // terugval: centrale sheet (met Bedrijf-kolom)
     sheet(SHEET_BOEKINGEN, ['Tijdstip', 'Bedrijf', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Auto', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus'])
       .appendRow([new Date(), d.bedrijf || '', d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand']);
   }
-  try { createCalendarEvent(d, (b && b.gevonden ? b.calendarId : '')); } catch (e) { /* agenda mag boeking niet blokkeren */ }
-  try { notifyBusiness(d); } catch (e) { /* mail mag boeking niet blokkeren */ }
+
+  try { createCalendarEvent(d, b.calendarId); } catch (e) {}
+  try { notifyBusiness(d); } catch (e) {}
 }
 
 function notifyBusiness(d) {
@@ -150,7 +177,7 @@ function notifyBusiness(d) {
       'Telefoon: ' + d.telefoon + '\n' +
       'Voertuig: ' + (d.auto || '-') + '\n' +
       'Aanbetaling: €' + (d.aanbetaling || 0) + '\n\n' +
-      'Alle boekingen vind je in je Google Sheet.'
+      'Alle boekingen vind je in je eigen Google Sheet.'
   });
 }
 
@@ -160,8 +187,8 @@ function createCalendarEvent(d, calendarId) {
   if (isNaN(start.getTime())) return;
   const eind = new Date(start.getTime() + (Number(d.duur) || 60) * 60000);
   let cal = null;
-  const id = calendarId || CALENDAR_ID;
-  if (id) { try { cal = CalendarApp.getCalendarById(id); } catch (e) { cal = null; } }
+  const cid = calendarId || CALENDAR_ID;
+  if (cid) { try { cal = CalendarApp.getCalendarById(cid); } catch (e) { cal = null; } }
   if (!cal) cal = CalendarApp.getDefaultCalendar();
   cal.createEvent(d.naam + ' — ' + d.dienst, start, eind, {
     description: 'Telefoon: ' + (d.telefoon || '') + '\nVoertuig: ' + (d.auto || '') + '\nPrijs: €' + (d.prijs || '') + '\nAanbetaling: €' + (d.aanbetaling || '')
