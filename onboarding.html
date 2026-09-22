@@ -78,6 +78,18 @@
               </div>
             </div>
             <div class="field">
+              <label>Gesloten op</label>
+              <div class="dagen" id="dagen">
+                <label><input type="checkbox" value="1" /> ma</label>
+                <label><input type="checkbox" value="2" /> di</label>
+                <label><input type="checkbox" value="3" /> wo</label>
+                <label><input type="checkbox" value="4" /> do</label>
+                <label><input type="checkbox" value="5" /> vr</label>
+                <label><input type="checkbox" value="6" /> za</label>
+                <label><input type="checkbox" value="0" /> zo</label>
+              </div>
+            </div>
+            <div class="field">
               <label for="email">E-mailadres (voor boekingsmeldingen)</label>
               <input id="email" name="email" type="email" placeholder="jij@bedrijf.nl" />
             </div>
@@ -105,6 +117,10 @@
             <div class="link-box">
               <input id="done-link" readonly />
               <button type="button" class="btn btn--ghost" id="copy-btn" style="padding:10px 16px">Kopieer</button>
+            </div>
+            <p style="margin:12px 0 4px;color:var(--mute);font-size:.85rem">Beheer-link (bewaar 'm! hiermee pas je later je gegevens aan):</p>
+            <div class="link-box">
+              <input id="beheer-link" readonly />
             </div>
           </div>
         </div>
@@ -217,7 +233,10 @@
           setErr("id", "Deze linknaam is al in gebruik. Kies een andere.");
           return;
         }
-        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), email: (document.getElementById("email") ? document.getElementById("email").value.trim() : ""), openVan: (document.getElementById("openVan") ? document.getElementById("openVan").value : "09:00"), openTot: (document.getElementById("openTot") ? document.getElementById("openTot").value : "18:00"), diensten: diensten });
+        var dagenEls = document.querySelectorAll("#dagen input:checked");
+        var gesloten = Array.prototype.map.call(dagenEls, function (x) { return x.value; }).join(",");
+        var code = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 8);
+        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), email: (document.getElementById("email") ? document.getElementById("email").value.trim() : ""), openVan: (document.getElementById("openVan") ? document.getElementById("openVan").value : "09:00"), openTot: (document.getElementById("openTot") ? document.getElementById("openTot").value : "18:00"), gesloten: gesloten, code: code, diensten: diensten });
       });
     });
 
@@ -247,6 +266,8 @@
           document.getElementById("iban-naam").textContent = BETAAL_NAAM || "Glanzza";
           document.getElementById("iban-oms").textContent = "Glanzza " + data.naam;
         }
+        var bl = document.getElementById("beheer-link");
+        if (bl) bl.value = location.origin + location.pathname.replace(/onboarding\.html.*$/, "beheer.html?id=" + encodeURIComponent(data.id) + "&code=" + encodeURIComponent(data.code || ""));
         done.classList.add("show");
         form.style.display = "none";
       } catch (err) {

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glanzza — Beheer je pagina</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#070a0e" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    .onboard { padding: clamp(40px,6vw,64px) 0 clamp(64px,9vw,104px); }
+    .onboard__card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:clamp(22px,3vw,34px); max-width:640px; margin:0 auto; }
+    .onboard__card h1 { font-size:clamp(1.6rem,3.6vw,2.2rem); margin-bottom:8px; }
+    .onboard__sub { color:var(--dim); margin-bottom:26px; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .svc { border:1px solid var(--border); border-radius:var(--r-sm); padding:14px; margin-bottom:10px; background:var(--bg-1); }
+    .svc__row { display:grid; grid-template-columns:1fr 90px 80px 34px; gap:8px; align-items:center; }
+    .svc__row input { width:100%; padding:10px 12px; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:.92rem; }
+    .svc__del { width:34px; height:34px; border-radius:9px; border:1px solid var(--border); color:var(--mute); font-size:1.1rem; display:flex; align-items:center; justify-content:center; }
+    .add-svc { display:inline-flex; align-items:center; gap:7px; color:var(--brand); font-weight:600; font-size:.9rem; margin:4px 0 20px; }
+    .dagen { display:flex; flex-wrap:wrap; gap:12px; margin-top:4px; }
+    .dagen label { display:flex; align-items:center; gap:6px; color:var(--dim); font-size:.9rem; cursor:pointer; }
+    .done { display:none; margin-top:22px; padding:18px; border-radius:var(--r); background:var(--brand-soft); border:1px solid rgba(201,242,77,.4); }
+    .done.show { display:block; }
+    @media (max-width:520px){ .svc__row{grid-template-columns:1fr 1fr 34px} .svc__row input:nth-child(3){grid-column:1/-1} .row2{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav__inner">
+      <a class="brand" href="index.html"><svg class="brand__mark" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z" fill="#c9f24d"/></svg>Glan<span>zza</span></a>
+      <a class="btn btn--ghost" href="index.html" style="padding:9px 16px;font-size:.88rem">← Terug</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="onboard">
+      <div class="container">
+        <div class="onboard__card">
+          <h1>Beheer je pagina</h1>
+          <p class="onboard__sub">Pas hier je gegevens aan. Wijzigingen staan direct live op je boekingslink.</p>
+          <p class="status" id="load-status" role="status">Laden…</p>
+
+          <form id="edit-form" style="display:none" novalidate>
+            <div class="field">
+              <label for="naam">Bedrijfsnaam</label>
+              <input id="naam" name="naam" type="text" required />
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="aanbetaling">Aanbetaling (€)</label>
+                <input id="aanbetaling" name="aanbetaling" type="number" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label for="email">E-mail (voor meldingen)</label>
+                <input id="email" name="email" type="email" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="betaalLink">Wero / Tikkie-betaallink</label>
+              <input id="betaalLink" name="betaalLink" type="url" placeholder="https://tikkie.me/..." />
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="openVan">Open van</label>
+                <input id="openVan" name="openVan" type="time" />
+              </div>
+              <div class="field">
+                <label for="openTot">Open tot</label>
+                <input id="openTot" name="openTot" type="time" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Gesloten op</label>
+              <div class="dagen" id="dagen">
+                <label><input type="checkbox" value="1" /> ma</label>
+                <label><input type="checkbox" value="2" /> di</label>
+                <label><input type="checkbox" value="3" /> wo</label>
+                <label><input type="checkbox" value="4" /> do</label>
+                <label><input type="checkbox" value="5" /> vr</label>
+                <label><input type="checkbox" value="6" /> za</label>
+                <label><input type="checkbox" value="0" /> zo</label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Diensten &amp; prijzen</label>
+              <div id="diensten"></div>
+              <button type="button" class="add-svc" id="add-svc">＋ Dienst toevoegen</button>
+            </div>
+            <button type="submit" class="btn btn--primary btn--block" id="save">Opslaan →</button>
+            <p class="status" id="status" role="status" aria-live="polite"></p>
+          </form>
+
+          <div class="done" id="done">
+            <b style="color:var(--brand-3)">Opgeslagen! ✓</b>
+            <p style="margin:8px 0;color:var(--dim)">Je wijzigingen staan live.</p>
+            <a class="btn btn--ghost" id="view-link" href="#">Bekijk je boekingspagina →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" style="padding:28px 0">
+    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div>
+  </footer>
+
+  <script>
+  (function () {
+    "use strict";
+    var CENTRAL_URL = "https://script.google.com/macros/s/AKfycbxRUefLP8yUaZCsre_gqKJ-zzl6ouHPURHnBgrluOK9yrMQEa0HE24pUMBcLKN-ASS0/exec";
+    var params = new URLSearchParams(location.search);
+    var id = params.get("id") || "";
+    var code = params.get("code") || "";
+
+    var loadStatus = document.getElementById("load-status");
+    var form = document.getElementById("edit-form");
+    var status = document.getElementById("status");
+    var dienstenBox = document.getElementById("diensten");
+
+    if (!id || !code) { loadStatus.textContent = "⚠️ Ongeldige beheer-link (id of code ontbreekt)."; return; }
+
+    function serviceRow(s) {
+      var el = document.createElement("div");
+      el.className = "svc";
+      el.innerHTML =
+        '<div class="svc__row">' +
+        '<input class="svc-naam" placeholder="Dienstnaam">' +
+        '<input class="svc-prijs" type="number" min="0" placeholder="€ prijs">' +
+        '<input class="svc-duur" type="number" min="5" step="5" placeholder="min">' +
+        '<button type="button" class="svc__del" aria-label="Dienst verwijderen">×</button>' +
+        '</div>';
+      if (s) { el.querySelector(".svc-naam").value = s.naam || ""; el.querySelector(".svc-prijs").value = s.prijs || ""; el.querySelector(".svc-duur").value = s.duur || ""; }
+      el.querySelector(".svc__del").addEventListener("click", function () { el.remove(); });
+      return el;
+    }
+    document.getElementById("add-svc").addEventListener("click", function () { dienstenBox.appendChild(serviceRow()); });
+
+    function loadConfig(cb) {
+      var n = "__glanzza_beheer_" + Date.now();
+      window[n] = function (data) { try { cb(data); } finally { delete window[n]; } };
+      var s = document.createElement("script");
+      s.src = CENTRAL_URL + "?beheer=" + encodeURIComponent(id) + "&code=" + encodeURIComponent(code) + "&callback=" + n;
+      s.onerror = function () { cb(null); };
+      document.head.appendChild(s);
+    }
+
+    loadConfig(function (data) {
+      if (!data || !data.gevonden) {
+        loadStatus.textContent = data && data.error === "code" ? "⚠️ Verkeerde beheer-code." : "⚠️ Bedrijf niet gevonden.";
+        return;
+      }
+      document.getElementById("naam").value = data.naam || "";
+      document.getElementById("aanbetaling").value = data.aanbetaling || 0;
+      document.getElementById("email").value = data.email || "";
+      document.getElementById("betaalLink").value = data.betaalLink || "";
+      document.getElementById("openVan").value = data.openVan || "09:00";
+      document.getElementById("openTot").value = data.openTot || "18:00";
+      var gl = String(data.gesloten || "").split(",");
+      document.querySelectorAll("#dagen input").forEach(function (c) { c.checked = gl.indexOf(c.value) !== -1; });
+      dienstenBox.innerHTML = "";
+      (data.diensten || []).forEach(function (d) { dienstenBox.appendChild(serviceRow(d)); });
+      if (!dienstenBox.children.length) dienstenBox.appendChild(serviceRow());
+      document.getElementById("view-link").href = location.origin + location.pathname.replace(/beheer\.html.*$/, "boeken.html?bedrijf=" + encodeURIComponent(id));
+      loadStatus.textContent = "";
+      form.style.display = "block";
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var naam = document.getElementById("naam").value.trim();
+      if (!naam) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een bedrijfsnaam in."; return; }
+      var diensten = [];
+      dienstenBox.querySelectorAll(".svc").forEach(function (row) {
+        var n = row.querySelector(".svc-naam").value.trim();
+        var p = row.querySelector(".svc-prijs").value;
+        var d = row.querySelector(".svc-duur").value;
+        if (n && p) diensten.push({ naam: n, prijs: Number(p) || 0, duur: Number(d) || 60 });
+      });
+      var gesloten = Array.prototype.map.call(document.querySelectorAll("#dagen input:checked"), function (x) { return x.value; }).join(",");
+      var data = {
+        type: "update", id: id, code: code,
+        naam: naam,
+        aanbetaling: Number(document.getElementById("aanbetaling").value) || 0,
+        email: document.getElementById("email").value.trim(),
+        betaalLink: document.getElementById("betaalLink").value.trim(),
+        openVan: document.getElementById("openVan").value || "09:00",
+        openTot: document.getElementById("openTot").value || "18:00",
+        gesloten: gesloten,
+        diensten: diensten
+      };
+      var btn = document.getElementById("save");
+      btn.setAttribute("aria-disabled", "true");
+      status.setAttribute("data-state", "busy"); status.textContent = "Opslaan…";
+      try {
+        await fetch(CENTRAL_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(data) });
+        status.setAttribute("data-state", "ok"); status.textContent = "✅ Opgeslagen!";
+        document.getElementById("done").classList.add("show");
+      } catch (err) {
+        status.setAttribute("data-state", "err"); status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw.";
+      } finally {
+        btn.removeAttribute("aria-disabled");
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

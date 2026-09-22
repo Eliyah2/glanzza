@@ -171,6 +171,7 @@
 
     var cfg = null;
     var bezet = [];
+    var gesloten = [];
 
     function toMin(t) { var p = String(t).split(":"); return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0); }
     function overlap(d1, t1, m1, d2, t2, m2) { if (d1 !== d2) return false; var s1 = toMin(t1), s2 = toMin(t2); return s1 < s2 + m2 && s2 < s1 + m1; }
@@ -185,6 +186,8 @@
       document.getElementById("tijd").value = "";
       var d = document.getElementById("datum").value;
       if (!d) { if (him) him.textContent = "Kies eerst een datum."; return; }
+      var dag = new Date(d + "T12:00:00").getDay();
+      if (gesloten.indexOf(dag) !== -1) { if (him) him.textContent = "Op deze dag zijn we gesloten — kies een andere datum."; return; }
       var sel = document.getElementById("dienst").value;
       var di = (cfg && cfg.diensten ? cfg.diensten : []).find(function (x) { return x.naam === sel; });
       var du = di ? (di.duur || 60) : 60;
@@ -218,6 +221,7 @@
       bezet = Array.isArray(c.bezet) ? c.bezet : [];
       openVan = c.openVan || "09:00";
       openTot = c.openTot || "18:00";
+      gesloten = String(c.gesloten || "").split(",").map(function (x) { return parseInt(x, 10); }).filter(function (x) { return !isNaN(x); });
       var aanbetaling = c.aanbetaling || 0;
       var diensten = Array.isArray(c.diensten) ? c.diensten : [];
       var betaalLink = c.betaalLink || "";

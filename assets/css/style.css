@@ -311,3 +311,5 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.03em;line-height:1.06}
 .slot:hover{border-color:var(--brand)}
 .slot--sel{background:var(--brand);color:#141a02;border-color:var(--brand);font-weight:700}
 .slot--bezet{opacity:.4;text-decoration:line-through;cursor:not-allowed}
+.dagen{display:flex;flex-wrap:wrap;gap:12px;margin-top:4px}
+.dagen label{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:.9rem;cursor:pointer}

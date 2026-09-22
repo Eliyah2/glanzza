@@ -18,17 +18,27 @@ const SPREADSHEET_ID = '';                         // alleen nodig als het scrip
 const SITE_URL = 'https://glanzza.vercel.app';     // jouw site (voor links in e-mails)
 const STATUS_KOLOM = 9;                            // kolom I = Status in "Bedrijven"
 
-const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status', 'Gratis tot', 'Open van', 'Open tot'];
+const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status', 'Gratis tot', 'Open van', 'Open tot', 'Gesloten', 'Beheer-code'];
 const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Voertuig', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus', 'Duur'];
 
 // --- lezen (boekingspagina haalt hier 1 bedrijf op) ---
 function doGet(e) {
-  const id = e.parameter.bedrijf || '';
   const callback = e.parameter.callback || '';
-  const data = getBusiness(id);
-  if (data && data.gevonden) {
-    data.bezet = getBookedSlots(data);
-    delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; delete data.gratisTot;
+  let data;
+  if (e.parameter.beheer) {
+    data = getBusiness(e.parameter.beheer);
+    if (data && data.gevonden && String(data.beheerCode) !== String(e.parameter.code || '')) {
+      data = { gevonden: false, error: 'code' };
+    } else if (data && data.gevonden) {
+      delete data.row;
+      data.bezet = getBookedSlots(data);
+    }
+  } else {
+    data = getBusiness(e.parameter.bedrijf || '');
+    if (data && data.gevonden) {
+      data.bezet = getBookedSlots(data);
+      delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; delete data.gratisTot; delete data.beheerCode;
+    }
   }
   const json = JSON.stringify(data);
   if (callback) {
@@ -43,6 +53,7 @@ function doPost(e) {
     const d = JSON.parse(e.postData.contents);
     if (d.type === 'lead') { addLead(d); return ok(); }
     if (d.type === 'onboard') { addBusiness(d); return ok(); }
+    if (d.type === 'update') { updateBusiness(d); return ok(); }
     addBooking(d);
     return ok();
   } catch (err) {
@@ -69,7 +80,8 @@ function getBusiness(id) {
         betaalLink: rows[i][3] || '', diensten: safeJson(rows[i][4]),
         email: String(rows[i][5] || ''), sheetId: String(rows[i][6] || ''),
         calendarId: String(rows[i][7] || ''), status: status, gratisTot: (isNaN(gratisTotMs) ? '' : gt),
-        openVan: String(rows[i][10] || '09:00'), openTot: String(rows[i][11] || '18:00')
+        openVan: String(rows[i][10] || '09:00'), openTot: String(rows[i][11] || '18:00'),
+        gesloten: String(rows[i][12] || ''), beheerCode: String(rows[i][13] || '')
       };
       // Lazy-activatie: Status = 'actief' maar nog geen Sheet/Agenda? → nu aanmaken.
       if (b.status.toLowerCase() === 'actief' && (!b.sheetId || !b.calendarId)) {
@@ -95,7 +107,7 @@ function addBusiness(d) {
     .map(function (s) { return { naam: String(s.naam).trim(), prijs: Number(s.prijs) || 0, duur: Number(s.duur) || 60 }; });
   const email = String(d.email || '').trim();
   // Aanmelding = 'wacht'. Sheet + Agenda worden pas NA betaling aangemaakt.
-  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, '', '', 'wacht', '', String(d.openVan || '09:00').trim(), String(d.openTot || '18:00').trim()]);
+  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, '', '', 'wacht', '', String(d.openVan || '09:00').trim(), String(d.openTot || '18:00').trim(), String(d.gesloten || '').trim(), String(d.code || '').trim()]);
   try {
     MailApp.sendEmail({
       to: Session.getEffectiveUser().getEmail(),
@@ -104,6 +116,32 @@ function addBusiness(d) {
         '\n\nActie: laat betalen. Zet daarna in de tab "Bedrijven" de Status van deze rij op "actief" — het systeem maakt dan automatisch de Sheet + Agenda aan en mailt het bedrijf zijn link.'
     });
   } catch (e) {}
+}
+
+// Eigenaar past later zijn gegevens aan (via beheer-pagina, met code)
+function updateBusiness(d) {
+  const id = String(d.id || '').trim();
+  const code = String(d.code || '').trim();
+  if (!id || !code) return;
+  const sh = sheet(SHEET_BEDRIJVEN, BEDRIJF_KOLOMMEN);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === id && String(rows[i][13]) === code) {
+      const r = i + 1;
+      const diensten = (Array.isArray(d.diensten) ? d.diensten : [])
+        .filter(function (s) { return s && s.naam; })
+        .map(function (s) { return { naam: String(s.naam).trim(), prijs: Number(s.prijs) || 0, duur: Number(s.duur) || 60 }; });
+      sh.getRange(r, 2).setValue(String(d.naam || '').trim());
+      sh.getRange(r, 3).setValue(Number(d.aanbetaling) || 0);
+      sh.getRange(r, 4).setValue(String(d.betaalLink || '').trim());
+      sh.getRange(r, 5).setValue(JSON.stringify(diensten));
+      sh.getRange(r, 6).setValue(String(d.email || '').trim());
+      sh.getRange(r, 11).setValue(String(d.openVan || '09:00').trim());
+      sh.getRange(r, 12).setValue(String(d.openTot || '18:00').trim());
+      sh.getRange(r, 13).setValue(String(d.gesloten || '').trim());
+      return;
+    }
+  }
 }
 
 // Activeert een bedrijf: maakt eigen Sheet + Agenda aan, deelt ze, mailt het bedrijf.
