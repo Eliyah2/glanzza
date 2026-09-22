@@ -24,6 +24,7 @@ function doGet(e) {
   const id = e.parameter.bedrijf || '';
   const callback = e.parameter.callback || '';
   const data = getBusiness(id);
+  if (data && data.gevonden) { delete data.email; }   // PRIVÉ: e-mail nooit naar de publieke pagina sturen
   const json = JSON.stringify(data);
   if (callback) {
     // JSONP: werkt zonder CORS-gedoe
