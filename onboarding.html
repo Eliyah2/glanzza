@@ -84,9 +84,14 @@
 
           <div class="done" id="done">
             <b style="color:var(--brand-3)">Aanmelding ontvangen! 🎉</b>
-            <p style="margin:8px 0;color:var(--dim)">Betaal je eerste maand om je pagina te activeren. Zodra je betaling binnen is, zetten we je pagina live en krijg je een mail met je boekingslink.</p>
-            <a class="btn btn--primary" id="betaal-link" href="#" target="_blank" rel="noopener" style="margin:8px 0 14px">Betaal je eerste maand →</a>
-            <p style="margin:4px 0;color:var(--mute);font-size:.85rem">Jouw boekingslink (actief na betaling):</p>
+            <p style="margin:8px 0;color:var(--dim)">Maak je eerste maand over om je pagina te activeren. Zodra de betaling binnen is, zetten we je pagina live en krijg je een mail met je boekingslink.</p>
+            <div class="iban">
+              <div class="iban__row"><span>Bedrag</span><b id="iban-bedrag">€15</b></div>
+              <div class="iban__row"><span>IBAN</span><b id="iban-rekening">—</b></div>
+              <div class="iban__row"><span>Ten name van</span><b id="iban-naam">—</b></div>
+              <div class="iban__row"><span>Omschrijving</span><b id="iban-oms">—</b></div>
+            </div>
+            <p style="margin:10px 0 4px;color:var(--mute);font-size:.85rem">Jouw boekingslink (actief na betaling):</p>
             <div class="link-box">
               <input id="done-link" readonly />
               <button type="button" class="btn btn--ghost" id="copy-btn" style="padding:10px 16px">Kopieer</button>
@@ -108,9 +113,11 @@
     var CENTRAL_URL = "https://script.google.com/macros/s/AKfycbzWPoe8aoStJ-lzgUvafzEZyal48CFRmQwj3rptBCzFCVVZvSt_YogooWQdH08fddEA5A/exec";
     // ====================================================
 
-    // === Jouw betaallink (Tikkie/Wero) — hiermee betalen bedrijven hun eerste maand ===
-    var BETAAL_LINK = "";
-    // ================================================================================
+    // === Jouw betaalgegevens (IBAN) — hiermee betalen bedrijven hun eerste maand ===
+    var BETAAL_IBAN = "";         // bijv. "NL91ABNA0417164300"
+    var BETAAL_NAAM = "";         // bijv. "E. Impelmans"
+    var BETAAL_BEDRAG = "€15";    // bijv. "€15"
+    // =============================================================================
 
     var naam = document.getElementById("naam");
     var linknaam = document.getElementById("linknaam");
@@ -219,7 +226,11 @@
         var link = location.origin + location.pathname.replace(/onboarding\.html.*$/, "boeken.html?bedrijf=" + encodeURIComponent(data.id));
         document.getElementById("done-link").value = link;
         var pb = document.getElementById("betaal-link");
-        if (BETAAL_LINK) { pb.href = BETAAL_LINK; } else { pb.href = "#"; pb.textContent = "Betaal je eerste maand (we nemen contact op)"; }
+        if (pb) { pb.style.display = "none"; }
+        document.getElementById("iban-bedrag").textContent = BETAAL_BEDRAG || "€15";
+        document.getElementById("iban-rekening").textContent = BETAAL_IBAN || "vraag ons om de gegevens";
+        document.getElementById("iban-naam").textContent = BETAAL_NAAM || "Glanzza";
+        document.getElementById("iban-oms").textContent = "Glanzza " + data.naam;
         done.classList.add("show");
         form.style.display = "none";
       } catch (err) {
