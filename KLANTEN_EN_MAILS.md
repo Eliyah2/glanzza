@@ -32,6 +32,7 @@ Elk **lokaal afspraakbedrijf** dat nu via WhatsApp/Instagram/telefoon plant:
 | 13 | Kop Sittard | Kapsalon | Sittard | info@kopsittard.nl |
 | 14 | Schoonheidsinstituut Pour Vous | Schoonheidssalon | Roermond | mail@pourvousschoonheidsinstituut.nl |
 | 15 | Brilliant Detailing | Detailing | Venlo | info@brilliantdetailing.eu |
+| 16 | Trimsalon Nono | Trimsalon | (NL) | info@trimsalonnono.nl |  ← **heeft al een no-show-beleid = warm**
 
 *(Tip: zoek per stad op Google Maps "kapsalon", "trimsalon", "nagelstudio" → op de site staat meestal een `info@`-adres. Zo maak je zelf oneindig veel leads.)*
 
