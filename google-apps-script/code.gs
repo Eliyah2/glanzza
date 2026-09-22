@@ -16,6 +16,7 @@ const SHEET_LEADS = 'Leads';
 const CALENDAR_ID = '';                            // optioneel: vaste agenda-ID
 const SPREADSHEET_ID = '';                         // alleen nodig als het script niet aan de Sheet hangt
 const SITE_URL = 'https://glanzza.vercel.app';     // jouw site (voor links in e-mails)
+const ADMIN_EMAIL = 'eliyahimpelmans9@gmail.com';  // hier komen je meldingen (leads + aanmeldingen)
 const STATUS_KOLOM = 9;                            // kolom I = Status in "Bedrijven"
 
 const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status', 'Gratis tot', 'Open van', 'Open tot', 'Gesloten', 'Beheer-code'];
@@ -116,7 +117,7 @@ function addBusiness(d) {
   sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, '', '', 'wacht', '', String(d.openVan || '09:00').trim(), String(d.openTot || '18:00').trim(), String(d.gesloten || '').trim(), String(d.code || '').trim()]);
   try {
     MailApp.sendEmail({
-      to: Session.getEffectiveUser().getEmail(),
+      to: ADMIN_EMAIL,
       subject: 'Nieuwe aanmelding: ' + naam,
       body: 'Nieuwe aanmelding op Glanzza.\n\nBedrijf: ' + naam + '\nLinknaam: ' + id + '\nE-mail: ' + email +
         '\n\nActie: laat betalen. Zet daarna in de tab "Bedrijven" de Status van deze rij op "actief" — het systeem maakt dan automatisch de Sheet + Agenda aan en mailt het bedrijf zijn link.'
@@ -380,7 +381,7 @@ function dailyLeads() {
       nieuw.push({ naam: naam, label: niche.label, stad: stad, tel: tel, email: email, web: web });
     });
     if (nieuw.length) {
-      const helper = 'https://glanzza.vercel.app/o-k7m2x9q.html';
+      const helper = SITE_URL + '/o-k7m2x9q.html';
       const SUBJ = 'sub' + 'ject';
       const AMP = String.fromCharCode(38);
       const kaarten = nieuw.map(function (x, i) {
@@ -397,9 +398,9 @@ function dailyLeads() {
         + '<h2 style="margin:0 0 4px">🎯 ' + nieuw.length + ' nieuwe koude leads</h2>'
         + '<p style="color:#666;margin:0 0 6px">' + esc(niche.label) + ' in ' + esc(stad) + '. Per bedrijf staat hieronder al een kant-en-klare mail — klik op "Stuur deze mail" of kopieer de tekst.</p>'
         + kaarten
-        + '<p style="color:#666;font-size:13px">Open de <a href="' + helper + '" style="color:#111">outreach-helper</a> voor de hele lijst en 1-klik verzenden.</p>'
+        + '<p style="color:#666;font-size:13px">Open de <a href="' + helper + '" style="color:#111">outreach-helper</a> voor de hele lijst en 1-klik verzenden.<br>Je site staat live op <a href="' + SITE_URL + '" style="color:#111">' + SITE_URL + '</a>.</p>'
         + '</div>';
-      MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: '🎯 ' + nieuw.length + ' nieuwe koude leads: ' + niche.label + ' in ' + stad, htmlBody: html });
+      MailApp.sendEmail({ to: ADMIN_EMAIL, subject: '🎯 ' + nieuw.length + ' nieuwe koude leads: ' + niche.label + ' in ' + stad, htmlBody: html });
     }
   } catch (e) {}
 }
