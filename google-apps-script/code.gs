@@ -84,7 +84,9 @@ function addBusiness(d) {
     .filter(function (s) { return s && s.naam; })
     .map(function (s) { return { naam: String(s.naam).trim(), prijs: Number(s.prijs) || 0, duur: Number(s.duur) || 60 }; });
 
-  // Eigen, afgeschermde Google Sheet per bedrijf
+  const email = String(d.email || '').trim();
+
+  // 1) Eigen, afgeschermde Google Sheet per bedrijf (automatisch)
   let sheetId = '';
   try {
     const ss = SpreadsheetApp.create('Glanzza boekingen — ' + naam);
@@ -92,10 +94,18 @@ function addBusiness(d) {
     tab.setName(SHEET_BOEKINGEN);
     tab.appendRow(BOEK_KOLOMMEN);
     sheetId = ss.getId();
-    if (d.email) { try { ss.addEditor(String(d.email).trim()); } catch (e) {} }
+    if (email) { try { ss.addEditor(email); } catch (e) {} }
   } catch (e) { sheetId = ''; }
 
-  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), String(d.email || '').trim(), sheetId, '']);
+  // 2) Eigen Google Agenda per bedrijf (automatisch, wordt gedeeld met het bedrijf)
+  let calendarId = '';
+  try {
+    const cal = CalendarApp.createCalendar('Glanzza agenda — ' + naam);
+    calendarId = cal.getId();
+    if (email) { try { Calendar.Acl.insert({ role: 'writer', scope: { type: 'user', value: email } }, calendarId); } catch (e) {} }
+  } catch (e) { calendarId = ''; }
+
+  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, sheetId, calendarId]);
 }
 
 function addLead(d) {
