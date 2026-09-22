@@ -25,6 +25,12 @@ const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum
 function doGet(e) {
   const callback = e.parameter.callback || '';
   let data;
+  if (e.parameter.leads) {
+    const arr = getOsmLeads(30);
+    const obj = { ok: true, leads: arr };
+    if (callback) return ContentService.createTextOutput(callback + '(' + JSON.stringify(obj) + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+    return json(obj);
+  }
   if (e.parameter.beheer) {
     data = getBusiness(e.parameter.beheer);
     if (data && data.gevonden && String(data.beheerCode) !== String(e.parameter.code || '')) {
@@ -314,6 +320,72 @@ function slotsOverlap(d1, t1, m1, d2, t2, m2) {
   const s1 = toMin(t1), s2 = toMin(t2);
   return s1 < s2 + m2 && s2 < s1 + m1;
 }
+// ================== NIEUWE LEADS VINDEN (OpenStreetMap, gratis) ==================
+var OSM_NICHES = [
+  { k: 'shop', v: 'hairdresser', label: 'kapsalon' },
+  { k: 'shop', v: 'beauty', label: 'schoonheidssalon' },
+  { k: 'shop', v: 'car_repair', label: 'autobedrijf' },
+  { k: 'amenity', v: 'car_wash', label: 'carwash' },
+  { k: 'shop', v: 'pet_grooming', label: 'trimsalon' },
+  { k: 'shop', v: 'tattoo', label: 'tattooshop' },
+  { k: 'shop', v: 'massage', label: 'massage' },
+  { k: 'leisure', v: 'fitness_centre', label: 'fitness' },
+  { k: 'shop', v: 'hairdresser_supply', label: 'kapsalon' },
+  { k: 'amenity', v: 'driving_school', label: 'rijschool' }
+];
+var OSM_CITIES = ['Roermond', 'Venlo', 'Weert', 'Sittard', 'Geleen', 'Heerlen', 'Maastricht', 'Venray', 'Echt', 'Kerkrade'];
+const OSM_KOLOMMEN = ['Naam', 'Niche', 'Stad', 'Telefoon', 'E-mail', 'Website', 'Adres', 'Gevonden'];
+
+// Draait dagelijks (via trigger): zoekt nieuwe bedrijven, zet ze in de sheet, mailt jou.
+function dailyLeads() {
+  try {
+    const sh = sheet('Leads-OSM', OSM_KOLOMMEN);
+    const existing = {};
+    sh.getDataRange().getValues().forEach(function (r, i) { if (i > 0) existing[String(r[0]) + '|' + String(r[2])] = 1; });
+    const niche = OSM_NICHES[Math.floor(Math.random() * OSM_NICHES.length)];
+    const stad = OSM_CITIES[Math.floor(Math.random() * OSM_CITIES.length)];
+    const q = '[out:json][timeout:25];area["name"="' + stad + '"]->.a;nwr["' + niche.k + '"="' + niche.v + '"](area.a);out tags center 40;';
+    const res = UrlFetchApp.fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q), { muteHttpExceptions: true, headers: { 'User-Agent': 'glanzza-leads' } });
+    const j = JSON.parse(res.getContentText());
+    const nieuw = [];
+    (j.elements || []).forEach(function (e) {
+      const t = e.tags || {}; const naam = t.name; if (!naam) return;
+      const key = naam + '|' + stad; if (existing[key]) return; existing[key] = 1;
+      const email = t['contact:email'] || t.email || '';
+      const tel = t.phone || t['contact:phone'] || '';
+      const web = t.website || t['contact:website'] || '';
+      const adres = [t['addr:street'], t['addr:housenumber'], t['addr:postcode'], t['addr:city']].filter(Boolean).join(' ');
+      sh.appendRow([naam, niche.label, stad, tel, email, web, adres, new Date()]);
+      nieuw.push({ naam: naam, label: niche.label, stad: stad, tel: tel, email: email, web: web });
+    });
+    if (nieuw.length) {
+      const body = 'Nieuwe leads (' + nieuw.length + ') — ' + niche.label + ' in ' + stad + ':\n\n' +
+        nieuw.map(function (x, i) { return (i + 1) + '. ' + x.naam + (x.email ? ' — ' + x.email : '') + (x.tel ? ' — ' + x.tel : '') + (x.web ? ' — ' + x.web : ''); }).join('\n') +
+        '\n\nOpen de outreach-helper om ze te benaderen. Zoek contact via Google als er geen e-mail bij staat.';
+      MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: '🎯 ' + nieuw.length + ' nieuwe leads: ' + niche.label + ' in ' + stad, body: body });
+    }
+  } catch (e) {}
+}
+
+// Eenmalig uitvoeren om de dagelijkse trigger aan te zetten (daarna draait het vanzelf)
+function setupDailyTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dailyLeads') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('dailyLeads').timeBased().everyDays(1).atHour(8).create();
+  dailyLeads();
+}
+
+function getOsmLeads(n) {
+  n = n || 30; const out = [];
+  try {
+    const sh = sheet('Leads-OSM', OSM_KOLOMMEN);
+    const rows = sh.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1 && out.length < n; i--) {
+      out.push({ naam: rows[i][0], niche: rows[i][1], stad: rows[i][2], tel: rows[i][3], email: rows[i][4], web: rows[i][5], adres: rows[i][6] });
+    }
+  } catch (e) {}
+  return out;
+}
+
 function ok() { return json({ ok: true }); }
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
