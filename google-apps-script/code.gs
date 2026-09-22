@@ -337,6 +337,25 @@ var OSM_CITIES = ['Roermond', 'Venlo', 'Weert', 'Sittard', 'Geleen', 'Heerlen', 
 const OSM_KOLOMMEN = ['Naam', 'Niche', 'Stad', 'Telefoon', 'E-mail', 'Website', 'Adres', 'Gevonden'];
 
 // Draait dagelijks (via trigger): zoekt nieuwe bedrijven, zet ze in de sheet, mailt jou.
+// Kant-en-klare mail per niche
+function mailVoorLead(label, naam, stad) {
+  const N = {
+    'kapsalon': { o: 'vraagje over jullie planning', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Mag ik je iets vragen: hoe komen afspraken bij jullie nu binnen, en vraagt een aanbetaling dan iets af?\n\nIk maak een Nederlandstalige boekingspagina met aanbetaling voor kappers. 5 minuutjes sparren?\n\nGroet,\nEliyah' },
+    'trimsalon': { o: 'vraagje over jullie afspraken', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe komen afspraken bij jullie nu binnen — WhatsApp, telefoon of online? En heb je weleens last van klanten die niet komen opdagen?\n\nIk ben een boekingssysteem met aanbetaling aan het maken voor trimsalons. 5 minuten?\n\nGroet,\nEliyah' },
+    'schoonheidssalon': { o: 'even een vraagje', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe vangen jullie het op als een klant niet komt opdagen?\n\nIk maak een boekingspagina met aanbetaling voor lokale salons. Mag ik je 5 minuten om je ervaring vragen?\n\nGroet,\nEliyah' },
+    'autobedrijf': { o: 'vraagje over afspraken', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe plannen klanten bij jullie een afspraak, en kosten no-shows weleens een dagdeel?\n\nIk maak een simpele boekingspagina met aanbetaling voor autobedrijven. 5 minuten feedback?\n\nGroet,\nEliyah' },
+    'carwash': { o: 'hoe plannen klanten bij jullie?', b: 'Hoi,\n\nKorte vraag: komen klanten bij [NAAM] in [STAD] op afspraak of gewoon langs?\n\nIk maak een boekingspagina met iDEAL-aanbetaling voor autobedrijven. Zou je 5 minuten hebben om me te vertellen hoe jullie het nu doen?\n\nGroet,\nEliyah' },
+    'tattooshop': { o: 'vraagje over jullie afspraken', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Een tattoo-afspraak is vaak lang — een no-show kost dan echt geld.\n\nIk maak een boekingspagina met aanbetaling. Mag ik je 5 minuten vragen hoe jullie dat nu oplossen?\n\nGroet,\nEliyah' },
+    'massage': { o: 'even een vraagje', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe gaan jullie om met klanten die niet komen opdagen?\n\nIk maak een simpele boekingspagina met aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah' },
+    'fitness': { o: 'vraagje over jullie planning', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe plannen jullie afspraken en proeflessen nu?\n\nIk maak een boekingspagina met aanbetaling. Mag ik je 5 minuten om feedback vragen?\n\nGroet,\nEliyah' },
+    'rijschool': { o: 'vraagje over jullie planning', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe plannen jullie rijlessen nu — telefoon of online?\n\nIk maak een simpele boekingspagina met aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah' },
+    'algemeen': { o: 'vraagje over jullie afspraken', b: 'Hoi,\n\nIk zag [NAAM] in [STAD]. Mag ik je een korte vraag stellen: hoe komen afspraken bij jullie nu binnen, en kosten no-shows weleens geld?\n\nIk maak een boekingspagina met aanbetaling voor lokale bedrijven. 5 minuten feedback?\n\nGroet,\nEliyah' }
+  };
+  const t = N[String(label || '').toLowerCase()] || N['algemeen'];
+  return { o: t.o, b: t.b.replace(/\[NAAM\]/g, naam).replace(/\[STAD\]/g, stad || '') };
+}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
 function dailyLeads() {
   try {
     const sh = sheet('Leads-OSM', OSM_KOLOMMEN);
@@ -361,10 +380,26 @@ function dailyLeads() {
       nieuw.push({ naam: naam, label: niche.label, stad: stad, tel: tel, email: email, web: web });
     });
     if (nieuw.length) {
-      const body = 'Nieuwe leads (' + nieuw.length + ') — ' + niche.label + ' in ' + stad + ':\n\n' +
-        nieuw.map(function (x, i) { return (i + 1) + '. ' + x.naam + (x.email ? ' — ' + x.email : '') + (x.tel ? ' — ' + x.tel : '') + (x.web ? ' — ' + x.web : ''); }).join('\n') +
-        '\n\nOpen de outreach-helper om ze te benaderen. Zoek contact via Google als er geen e-mail bij staat.';
-      MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: '🎯 ' + nieuw.length + ' nieuwe leads: ' + niche.label + ' in ' + stad, body: body });
+      const helper = 'https://glanzza.vercel.app/o-k7m2x9q.html';
+      const SUBJ = 'sub' + 'ject';
+      const AMP = String.fromCharCode(38);
+      const kaarten = nieuw.map(function (x, i) {
+        const m = mailVoorLead(x.label, x.naam, x.stad);
+        const mto = x.email ? ('mailto:' + x.email + '?' + SUBJ + '=' + encodeURIComponent(m.o) + AMP + 'bo' + 'dy=' + encodeURIComponent(m.b)) : '';
+        return '<div style="border:1px solid #dcdcdc;border-radius:12px;padding:14px 16px;margin:10px 0">'
+          + '<div style="font-weight:700;font-size:16px">' + (i + 1) + '. ' + esc(x.naam) + '</div>'
+          + '<div style="color:#666;font-size:13px;margin:2px 0 8px">' + esc(x.label) + ' · ' + esc(x.stad) + (x.tel ? ' · ' + esc(x.tel) : '') + (x.email ? ' · ' + esc(x.email) : '') + (x.web ? ' · ' + esc(x.web) : '') + '</div>'
+          + '<div style="background:#f5f5f5;border-radius:8px;padding:10px 12px;font-size:13px;white-space:pre-wrap;color:#222">' + esc('Onderwerp: ' + m.o + '\n\n' + m.b) + '</div>'
+          + (mto ? '<a href="' + mto + '" style="display:inline-block;margin-top:10px;background:#111;color:#c9f24d;text-decoration:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700">Stuur deze mail →</a>' : '<div style="margin-top:10px;color:#a05a00;font-size:13px">Geen e-mail gevonden — zoek contact via de helper.</div>')
+          + '</div>';
+      }).join('');
+      const html = '<div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;color:#222">'
+        + '<h2 style="margin:0 0 4px">🎯 ' + nieuw.length + ' nieuwe koude leads</h2>'
+        + '<p style="color:#666;margin:0 0 6px">' + esc(niche.label) + ' in ' + esc(stad) + '. Per bedrijf staat hieronder al een kant-en-klare mail — klik op "Stuur deze mail" of kopieer de tekst.</p>'
+        + kaarten
+        + '<p style="color:#666;font-size:13px">Open de <a href="' + helper + '" style="color:#111">outreach-helper</a> voor de hele lijst en 1-klik verzenden.</p>'
+        + '</div>';
+      MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: '🎯 ' + nieuw.length + ' nieuwe koude leads: ' + niche.label + ' in ' + stad, htmlBody: html });
     }
   } catch (e) {}
 }
