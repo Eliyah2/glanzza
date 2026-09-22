@@ -10,10 +10,17 @@
   <link rel="stylesheet" href="assets/css/style.css" />
   <style>
     .oh { padding: clamp(32px,5vw,56px) 0 80px; }
-    .oh__head { margin-bottom: 24px; }
+    .oh__head { margin-bottom: 22px; }
     .oh__head h1 { font-size: clamp(1.5rem,3.4vw,2.1rem); margin-bottom: 8px; }
-    .oh__head p { color: var(--dim); max-width: 680px; }
-    .oh__bar { display:flex; gap:16px; flex-wrap:wrap; margin:18px 0 26px; color:var(--mute); font-size:.9rem; }
+    .oh__head p { color: var(--dim); max-width: 700px; }
+    .card-blk { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:22px; margin-bottom:18px; }
+    .card-blk h2 { font-size:1.05rem; margin-bottom:12px; }
+    .finds { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    @media (max-width:700px){ .finds{grid-template-columns:1fr} }
+    .find { background:var(--bg-1); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .find b { display:block; font-size:1rem; margin-bottom:4px; }
+    .find span { color:var(--mute); font-size:.82rem; display:block; margin-bottom:12px; }
+    .oh__bar { display:flex; gap:16px; flex-wrap:wrap; margin:16px 0 22px; color:var(--mute); font-size:.9rem; align-items:center; }
     .oh__bar b { color: var(--brand); }
     .lead { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px; margin-bottom:14px; }
     .lead--done { opacity:.5; }
@@ -54,15 +61,23 @@
     <div class="container">
       <div class="oh__head">
         <h1>Outreach-helper</h1>
-        <p>Eén klik per bedrijf: de mail staat klaar, jij drukt op <b>verzenden</b> in je eigen mail-app. Verstuur er 3–5 per dag. Vink af wat je verstuurd hebt (wordt opgeslagen).</p>
+        <p>Elke dag 3 verse bedrijven om te benaderen + mails die klaarstaan. Jij drukt op verzenden.</p>
       </div>
+
+      <div class="card-blk">
+        <h2>🎯 Vandaag te benaderen</h2>
+        <div class="finds" id="finds"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button type="button" class="btn btn--ghost btn--sm" id="refresh">Nieuwe suggesties</button>
+          <span style="color:var(--mute);font-size:.85rem">Klik → Google Maps opent → kies een bedrijf → zoek hun e-mail → mail hieronder.</span>
+        </div>
+      </div>
+
       <div class="oh__bar">
         <span>Verstuurd: <b id="cnt">0</b> / <b id="tot">0</b></span>
-        <span>·</span>
-        <span>Tip: personaliseer gerust een detail (recente post, hun diensten).</span>
       </div>
       <div id="list"></div>
-      <p style="margin-top:26px;color:var(--mute);font-size:.85rem">Zet onderaan elke mail: <i>"Wil je geen bericht meer? Antwoord 'stop'."</i></p>
+      <p style="margin-top:22px;color:var(--mute);font-size:.85rem">Zet onderaan elke mail: <i>"Wil je geen bericht meer? Antwoord 'stop'."</i></p>
     </div>
   </main>
 
@@ -73,7 +88,7 @@
   <script>
   (function () {
     "use strict";
-    var PIN = "2468";
+    var PIN = "2008";
     var gate = document.getElementById("gate");
     function checkPin() {
       if (document.getElementById("pin").value === PIN) { gate.classList.add("hide"); }
@@ -82,34 +97,70 @@
     document.getElementById("pin-btn").addEventListener("click", checkPin);
     document.getElementById("pin").addEventListener("keydown", function (e) { if (e.key === "Enter") checkPin(); });
 
+    // ===== Lead-verkenner: 3 verse zoekopdrachten per dag =====
+    var NICHES = ["autopoetsbedrijf", "car detailing", "kapsalon", "barbershop", "hondentrimsalon", "nagelstudio", "schoonheidssalon", "pedicure salon", "tattooshop", "personal trainer", "autoruit tinting", "poetsbedrijf auto"];
+    var CITIES = ["Roermond", "Venlo", "Weert", "Sittard", "Geleen", "Heerlen", "Maastricht", "Echt", "Roerdalen", "Venray", "Panningen", "Kerkrade", "Maasgouw", "Beesel", "Nederweert"];
+
+    function mulberry32(a) {
+      return function () {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        var t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function renderFinds(seed) {
+      var rnd = mulberry32(seed);
+      var box = document.getElementById("finds");
+      box.innerHTML = "";
+      var chosen = {};
+      var made = 0;
+      while (made < 3) {
+        var n = NICHES[Math.floor(rnd() * NICHES.length)];
+        var c = CITIES[Math.floor(rnd() * CITIES.length)];
+        var key = n + "|" + c;
+        if (chosen[key]) continue;
+        chosen[key] = 1; made++;
+        var q = encodeURIComponent(n + " " + c);
+        var el = document.createElement("div");
+        el.className = "find";
+        el.innerHTML = '<b>' + n + '</b><span>' + c + '</span>' +
+          '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1' + String.fromCharCode(38) + 'query=' + q + '">Zoek op Google Maps →</a>';
+        box.appendChild(el);
+      }
+    }
+    function dailySeed() { var d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+    renderFinds(dailySeed());
+    document.getElementById("refresh").addEventListener("click", function () { renderFinds(Math.floor(Math.random() * 1e9)); });
+
+    // ===== Leads + persoonlijke mails =====
     var LEADS = [
-      { n: "Trimsalon Nono", s: "Trimsalon", c: "(NL)", e: "info@trimsalonnono.nl", o: "jullie no-show-beleid — mag ik hierover sparren?", b: "Hoi, ik zag dat Trimsalon Nono een duidelijk no-show-beleid heeft — jullie hebben dus al gemerkt dat het geld kost. Ik bouw een simpele boekingspagina met iDEAL-aanbetaling, zodat no-shows automatisch verdwijnen (klant betaalt bij het boeken). Mag ik jullie 5 minuten vragen hoe jullie dit nu aanpakken?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Hondentrimsalon Murphy", s: "Trimsalon", c: "Geleen", e: "info@hondentrimsalonmurphy.nl", o: "agenda vol, no-shows eruit?", b: "Hoi, ik zag Hondentrimsalon Murphy in Geleen. Hoe plannen jullie de afspraken nu — telefoon, WhatsApp of online? En vragen jullie een aanbetaling? Ik bouw een simpele Nederlandstalige boekingspagina met iDEAL-aanbetaling. Mag ik 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Jixer's Trimsalon", s: "Trimsalon", c: "Geleen", e: "info@jixers.nl", o: "afspraken zonder gedoe", b: "Hoi, ik zag Jixer's Trimsalon in Geleen. Mag ik één korte vraag stellen over hoe jullie afspraken plannen en wat no-shows jullie kosten? Ik bouw daar een simpele oplossing voor (online boeken + aanbetaling). 5 minuten sparren zou top zijn.\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Hondentrimsalon Spaubeek", s: "Trimsalon", c: "Spaubeek", e: "info@hondentrimsalonspaubeek.nl", o: "klanten die niet komen opdagen", b: "Hoi, ik zag Hondentrimsalon Spaubeek. Hoe gaan jullie om met no-shows? Ik bouw een eenvoudige boekingssite met iDEAL-aanbetaling voor lokale afspraakbedrijven. Ik zoek feedback van echte ondernemers — 5 minuutjes?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Trimsalon Het Hondje", s: "Trimsalon", c: "Landgraaf", e: "info@trimsalonhethondje.nl", o: "online afspraken voor Trimsalon Het Hondje", b: "Hoi, ik zag Trimsalon Het Hondje in Landgraaf. Mag ik één vraag stellen: hoe komen afspraken nu bij jullie binnen, en hoe vaak komt iemand niet opdagen? Ik bouw een tool waarmee klanten 24/7 boeken én een aanbetaling doen. Zou je 5 minuten willen sparren?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Trimsalon Hond & Hip", s: "Trimsalon", c: "Zuid-Limburg", e: "info@hondenhip.nl", o: "online boeken + aanbetaling", b: "Hoi, ik zag Trimsalon Hond & Hip. Hoe komen afspraken nu bij jullie binnen? En hoe vaak komt iemand niet? Ik bouw een boekingssite met iDEAL-aanbetaling voor lokale bedrijven. Zou je 5 minuten willen sparren?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Happy Dog Trimsalon", s: "Trimsalon", c: "Venlo", e: "info@happydogvenlo.nl", o: "trimsalon-agenda + no-shows", b: "Hoi, ik zag Happy Dog Trimsalon in Venlo. Een no-show kost je zo een groot deel van je dag. Hoe plannen jullie nu, en vragen jullie een aanbetaling? Ik bouw een simpele boekingspagina met aanbetaling. 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Trimsalon Make It Easy", s: "Trimsalon", c: "(NL)", e: "coatcare@outlook.com", o: "no-shows bij de trimsalon", b: "Hoi, ik zag dat jullie afspraken via WhatsApp en e-mail regelen. Mag ik vragen: kosten no-shows jullie weleens een plek in de agenda? Ik bouw een simpele tool waarmee klanten online boeken én een aanbetaling doen. 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Brilliant Detailing", s: "Detailing", c: "Venlo", e: "info@brilliantdetailing.eu", o: "no-shows bij Brilliant Detailing", b: "Hoi, ik zag Brilliant Detailing in Venlo (Vasco da Gamaweg). Hoe plannen klanten nu een afspraak — telefoon, WhatsApp of online? En kosten no-shows jullie weleens een dagdeel? Ik bouw een simpele Nederlandstalige boekingspagina met iDEAL-aanbetaling. 5 minuten feedback zou me al helpen.\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Hair & Looks (Roermond)", s: "Kapsalon", c: "Roermond", e: "roermond-centrum@hairandlooks.nl", o: "kapsalon-agenda + iDEAL-aanbetaling", b: "Hoi, ik zag Hair & Looks in Roermond. Hoe vangen jullie no-shows op? Ik bouw een Nederlandstalige boekingspagina met iDEAL-aanbetaling voor lokale afspraakbedrijven (kappers, trimsalons, salons). Ik zoek feedback — 5 minuten?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Kop Sittard", s: "Kapsalon", c: "Sittard", e: "info@kopsittard.nl", o: "afspraken plannen in Sittard", b: "Hoi, ik zag Kop in Sittard. Mag ik één vraag stellen: hoe komen boekingen bij jullie binnen, en hoe vaak komt iemand niet opdagen? Ik bouw een simpele boekingssite met iDEAL-aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Schoonheidsinstituut Pour Vous", s: "Schoonheidssalon", c: "Roermond", e: "mail@pourvousschoonheidsinstituut.nl", o: "no-shows bij Pour Vous", b: "Hoi, ik zag Schoonheidsinstituut Pour Vous in Roermond. Hoe gaan jullie om met klanten die niet komen opdagen? Ik bouw een eenvoudige boekingspagina met iDEAL-aanbetaling voor lokale afspraakbedrijven. Mag ik je 5 minuten om feedback vragen?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Carwash Number 1", s: "Carwash", c: "Roermond", e: "info@carwashnumber1.nl", o: "no-shows bij Carwash Number 1", b: "Hoi, ik zag Carwash Number 1 in Roermond. Mag ik één korte vraag stellen? Hoe plannen klanten nu een afspraak — telefoon, WhatsApp of online? En kosten no-shows jullie weleens een dagdeel? Ik bouw een simpele tool waarmee klanten online boeken én een iDEAL-aanbetaling doen. 5 minuten feedback zou me al helpen.\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Carwash Roermond", s: "Carwash", c: "Roermond", e: "info@carwash-roermond.nl", o: "online boeken + aanbetaling", b: "Hoi, hoe vangen jullie no-shows nu op? Ik bouw een Nederlandstalige boekingspagina met iDEAL-aanbetaling speciaal voor lokale bedrijven. Mag ik jullie 5 minuten vragen stellen — geen verkoop, puur feedback?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "Claro Carwash", s: "Carwash", c: "Roermond", e: "info@claro-carwash.com", o: "klanten die niet komen opdagen", b: "Hoi, even een vraag aan Claro Carwash. Hoeveel klanten komen er per maand niet opdagen, en vragen jullie een aanbetaling? Ik bouw een simpele tool die dat oplost (online boeken + iDEAL-aanbetaling). Zou je daar 5 minuten over willen sparren?\n\nGroet,\nEliyah — Glanzza" },
-      { n: "WasArena (bij Wealer)", s: "Carwash/poets", c: "Venlo", e: "info@dewasarena.nl", o: "poets-afspraken plannen zonder gedoe", b: "Hoi, ik zag WasArena bij Wealer in Venlo. Hoe komen poets-afspraken nu bij jullie binnen? En hoe gaan jullie om met klanten die niet komen? Ik bouw een boekingssite met iDEAL-aanbetaling voor lokale bedrijven. Mag ik jullie 5 minuten om feedback vragen?\n\nGroet,\nEliyah — Glanzza" }
+      { n: "Trimsalon Nono", s: "Trimsalon", c: "(NL)", e: "info@trimsalonnono.nl", o: "even over jullie no-show-beleid", b: "Hoi,\n\nIk zag dat jullie een no-show-beleid hebben — dus jullie weten hoe vervelend het is als iemand gewoon niet komt.\n\nIk ben een boekingssysteem aan het maken speciaal voor trimsalons, waarbij klanten vooraf een kleine aanbetaling doen. Mag ik je 5 minuutjes vragen hoe jullie dat nu aanpakken?\n\nGroet,\nEliyah" },
+      { n: "Hondentrimsalon Murphy", s: "Trimsalon", c: "Geleen", e: "info@hondentrimsalonmurphy.nl", o: "hoe plannen jullie de afspraken?", b: "Hoi,\n\nEven een vraagje: hoe komen afspraken bij jullie nu binnen — WhatsApp, telefoon of online?\n\nIk ben namelijk een simpel boekingssysteem aan het maken voor trimsalons (met aanbetaling vooraf). Zou je 5 minuten hebben om me te vertellen hoe jullie dat nu doen?\n\nGroet,\nEliyah" },
+      { n: "Jixer's Trimsalon", s: "Trimsalon", c: "Geleen", e: "info@jixers.nl", o: "kost een no-show jou veel?", b: "Hoi,\n\nMag ik je iets vragen? Wat kost een no-show jou aan het eind van de maand?\n\nIk maak een boekingssysteem met aanbetaling voor trimsalons en zoek echte ervaringen van ondernemers. 5 minuutjes sparren?\n\nGroet,\nEliyah" },
+      { n: "Hondentrimsalon Spaubeek", s: "Trimsalon", c: "Spaubeek", e: "info@hondentrimsalonspaubeek.nl", o: "vraagje over no-shows", b: "Hoi,\n\nHoe gaan jullie eigenlijk om met klanten die niet komen opdagen? Dat blijkt bij veel trimsalons een groot probleem.\n\nIk ben een eenvoudig boekingssysteem aan het bouwen (klant betaalt een aanbetaling bij het boeken). Vertel je me in 5 minuten hoe jullie dat nu doen?\n\nGroet,\nEliyah" },
+      { n: "Trimsalon Het Hondje", s: "Trimsalon", c: "Landgraaf", e: "info@trimsalonhethondje.nl", o: "hoe regelen jullie afspraken?", b: "Hoi,\n\nIk zag Trimsalon Het Hondje in Landgraaf. Hoe snel zijn jullie volgeboekt, en hoe vaak komt er iemand niet?\n\nIk maak een boekingssysteem met aanbetaling voor trimsalons. Mag ik jullie daar 5 minuten over vragen stellen?\n\nGroet,\nEliyah" },
+      { n: "Trimsalon Hond & Hip", s: "Trimsalon", c: "Zuid-Limburg", e: "info@hondenhip.nl", o: "online boeken voor jullie salon?", b: "Hoi,\n\nKunnen klanten bij jullie online boeken of gaat dat via WhatsApp?\n\nIk maak een simpele boekingspagina met aanbetaling voor trimsalons. Zou je 5 minuutjes hebben om me te vertellen wat jullie het liefst zouden willen?\n\nGroet,\nEliyah" },
+      { n: "Happy Dog Trimsalon", s: "Trimsalon", c: "Venlo", e: "info@happydogvenlo.nl", o: "no-shows bij Happy Dog", b: "Hoi,\n\nEen trimsalon-afspraak kost je zo een half uur extra werk — een no-show is dan extra zuur.\n\nIk ben een boekingssysteem met aanbetaling aan het maken voor trimsalons. Mag ik je 5 minuten vragen hoe jullie dit nu opvangen?\n\nGroet,\nEliyah" },
+      { n: "Trimsalon Make It Easy", s: "Trimsalon", c: "(NL)", e: "coatcare@outlook.com", o: "vraagje over jullie afspraken", b: "Hoi,\n\nIk las dat jullie afspraken via WhatsApp en e-mail regelen. Werkt dat voor jullie, of kost het veel tijd?\n\nIk bouw een simpele boekingspagina met aanbetaling voor trimsalons. 5 minuten sparren zou me enorm helpen.\n\nGroet,\nEliyah" },
+      { n: "Brilliant Detailing", s: "Detailing", c: "Venlo", e: "info@brilliantdetailing.eu", o: "vraag over jullie afspraken", b: "Hoi,\n\nJullie doen van die mooie, lange behandelingen. Als er dan iemand niet komt opdagen, is dat een flinke hap uit je dag.\n\nIk ben een eenvoudige boekingspagina aan het maken met een aanbetaling vooraf. Mag ik jullie 5 minuten vragen hoe jullie dat nu oplossen?\n\nGroet,\nEliyah" },
+      { n: "Hair & Looks (Roermond)", s: "Kapsalon", c: "Roermond", e: "roermond-centrum@hairandlooks.nl", o: "hoe vangen jullie no-shows op?", b: "Hoi,\n\nIk zag Hair & Looks in Roermond. Hoe vangen jullie het op als een klant niet komt?\n\nIk maak een Nederlandstalige boekingspagina met aanbetaling voor kappers en salons. Zou je me 5 minuten vertellen hoe jullie dat nu doen?\n\nGroet,\nEliyah" },
+      { n: "Kop Sittard", s: "Kapsalon", c: "Sittard", e: "info@kopsittard.nl", o: "even een vraagje", b: "Hoi,\n\nMag ik je iets vragen over de planning bij Kop in Sittard? Hoe vaak komt het voor dat een klant niet komt opdagen, en vraagt een aanbetaling dan iets af?\n\nIk ben een simpel boekingssysteem met aanbetaling aan het maken. 5 minuten?\n\nGroet,\nEliyah" },
+      { n: "Schoonheidsinstituut Pour Vous", s: "Schoonheidssalon", c: "Roermond", e: "mail@pourvousschoonheidsinstituut.nl", o: "vraagje over no-shows", b: "Hoi,\n\nBehandelingen bij jullie duren vaak een uur — een no-show kost dan echt geld.\n\nIk maak een boekingspagina met aanbetaling voor lokale salons. Mag ik je 5 minuten om je ervaring vragen?\n\nGroet,\nEliyah" },
+      { n: "Carwash Number 1", s: "Carwash", c: "Roermond", e: "info@carwashnumber1.nl", o: "hoe plannen klanten bij jullie?", b: "Hoi,\n\nKorte vraag: komen klanten bij Carwash Number 1 op afspraak of gewoon langs?\n\nIk maak een boekingspagina met aanbetaling voor autobedrijven. Zou je 5 minuten hebben om me te vertellen hoe jullie het nu doen?\n\nGroet,\nEliyah" },
+      { n: "Carwash Roermond", s: "Carwash", c: "Roermond", e: "info@carwash-roermond.nl", o: "vraagje over afspraken", b: "Hoi,\n\nEven nieuwsgierig: hoe komen afspraken bij jullie binnen, en heb je weleens last van klanten die niet komen opdagen?\n\nIk maak een Nederlandstalige boekingspagina met aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah" },
+      { n: "Claro Carwash", s: "Carwash", c: "Roermond", e: "info@claro-carwash.com", o: "kunnen jullie hier iets mee?", b: "Hoi,\n\nHoeveel klanten komen er bij jullie per maand niet opdagen? En vraagt een aanbetaling dan iets af?\n\nIk ben zoiets aan het maken: online boeken + iDEAL-aanbetaling in één. Zou je 5 minuten hebben om me feedback te geven?\n\nGroet,\nEliyah" },
+      { n: "WasArena (bij Wealer)", s: "Carwash/poets", c: "Venlo", e: "info@dewasarena.nl", o: "poets-afspraken plannen", b: "Hoi,\n\nHoe plannen jullie poets-afspraken nu — telefoon, WhatsApp of via de site?\n\nIk maak een simpele boekingspagina met aanbetaling voor lokale bedrijven. Mag ik jullie 5 minuten om feedback vragen?\n\nGroet,\nEliyah" }
     ];
 
     var AMP = String.fromCharCode(38);
     var SLEUTEL_SUBJ = "sub" + "ject";
     var SLEUTEL_BODY = "bo" + "dy";
-
     function mailHref(L) {
       return "mailto:" + encodeURIComponent(L.e) + "?" + SLEUTEL_SUBJ + "=" + encodeURIComponent(L.o) + AMP + SLEUTEL_BODY + "=" + encodeURIComponent(L.b);
     }
 
-    var KEY = "glanzza_verzonden";
+    var KEY = "***";
     var sent = {};
     try { sent = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { sent = {}; }
 
