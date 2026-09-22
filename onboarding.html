@@ -84,14 +84,14 @@
 
           <div class="done" id="done">
             <b style="color:var(--brand-3)">Aanmelding ontvangen! 🎉</b>
-            <p style="margin:8px 0;color:var(--dim)">Maak je eerste maand over om je pagina te activeren. Zodra de betaling binnen is, zetten we je pagina live en krijg je een mail met je boekingslink.</p>
-            <div class="iban">
+            <p id="done-msg" style="margin:8px 0;color:var(--dim)">We activeren je pagina zo snel mogelijk. Je krijgt een mail met je boekingslink.</p>
+            <div class="iban" id="iban-box">
               <div class="iban__row"><span>Bedrag</span><b id="iban-bedrag">€15</b></div>
               <div class="iban__row"><span>IBAN</span><b id="iban-rekening">—</b></div>
               <div class="iban__row"><span>Ten name van</span><b id="iban-naam">—</b></div>
               <div class="iban__row"><span>Omschrijving</span><b id="iban-oms">—</b></div>
             </div>
-            <p style="margin:10px 0 4px;color:var(--mute);font-size:.85rem">Jouw boekingslink (actief na betaling):</p>
+            <p style="margin:10px 0 4px;color:var(--mute);font-size:.85rem">Jouw boekingslink (actief na activatie):</p>
             <div class="link-box">
               <input id="done-link" readonly />
               <button type="button" class="btn btn--ghost" id="copy-btn" style="padding:10px 16px">Kopieer</button>
@@ -113,6 +113,8 @@
     var CENTRAL_URL = "https://script.google.com/macros/s/AKfycbzWPoe8aoStJ-lzgUvafzEZyal48CFRmQwj3rptBCzFCVVZvSt_YogooWQdH08fddEA5A/exec";
     // ====================================================
 
+    // === Eerste maand gratis? (feedback-fase) — zet op false om direct betaling (IBAN) te vragen ===
+    var EERSTE_MAAND_GRATIS = true;
     // === Jouw betaalgegevens (IBAN) — hiermee betalen bedrijven hun eerste maand ===
     var BETAAL_IBAN = "NL20RBRB0200418939";   // jouw rekeningnummer
     var BETAAL_NAAM = "Eliyah Impelmans";      // ten name van
@@ -225,12 +227,16 @@
         status.textContent = "✅ Aanmelding opgeslagen!";
         var link = location.origin + location.pathname.replace(/onboarding\.html.*$/, "boeken.html?bedrijf=" + encodeURIComponent(data.id));
         document.getElementById("done-link").value = link;
-        var pb = document.getElementById("betaal-link");
-        if (pb) { pb.style.display = "none"; }
-        document.getElementById("iban-bedrag").textContent = BETAAL_BEDRAG || "€15";
-        document.getElementById("iban-rekening").textContent = BETAAL_IBAN || "vraag ons om de gegevens";
-        document.getElementById("iban-naam").textContent = BETAAL_NAAM || "Glanzza";
-        document.getElementById("iban-oms").textContent = "Glanzza " + data.naam;
+        if (EERSTE_MAAND_GRATIS) {
+          var ib = document.getElementById("iban-box"); if (ib) ib.style.display = "none";
+          document.getElementById("done-msg").innerHTML = "Je eerste maand is <b>gratis</b>! 🎉 We activeren je pagina zo snel mogelijk — daarna €15/maand.";
+        } else {
+          document.getElementById("done-msg").textContent = "Maak je eerste maand over om je pagina te activeren.";
+          document.getElementById("iban-bedrag").textContent = BETAAL_BEDRAG || "€15";
+          document.getElementById("iban-rekening").textContent = BETAAL_IBAN || "vraag ons om de gegevens";
+          document.getElementById("iban-naam").textContent = BETAAL_NAAM || "Glanzza";
+          document.getElementById("iban-oms").textContent = "Glanzza " + data.naam;
+        }
         done.classList.add("show");
         form.style.display = "none";
       } catch (err) {
