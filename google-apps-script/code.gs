@@ -402,14 +402,21 @@ function dailyLeads() {
         + '</div>';
       MailApp.sendEmail({ to: ADMIN_EMAIL, subject: '🎯 ' + nieuw.length + ' nieuwe koude leads: ' + niche.label + ' in ' + stad, htmlBody: html });
     }
-  } catch (e) {}
+  } catch (e) { Logger.log('dailyLeads-fout: ' + (e && e.message ? e.message : e)); }
 }
 
 // Eenmalig uitvoeren om de dagelijkse trigger aan te zetten (daarna draait het vanzelf)
 function setupDailyTrigger() {
-  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dailyLeads') ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('dailyLeads').timeBased().everyDays(1).atHour(8).create();
-  dailyLeads();
+  try {
+    ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'dailyLeads') ScriptApp.deleteTrigger(t); });
+    ScriptApp.newTrigger('dailyLeads').timeBased().everyDays(1).atHour(8).create();
+    Logger.log('OK: dagelijkse trigger staat (elke dag 08:00).');
+  } catch (e) {
+    Logger.log('FOUT bij trigger maken: ' + (e && e.message ? e.message : e));
+    throw e;
+  }
+  try { dailyLeads(); Logger.log('OK: dailyLeads uitgevoerd - check je mail.'); }
+  catch (e) { Logger.log('FOUT bij dailyLeads: ' + (e && e.message ? e.message : e)); }
 }
 
 function getOsmLeads(n) {
