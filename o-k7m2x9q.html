@@ -27,9 +27,22 @@
     .lead__acts { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .btn--sm { padding:9px 15px; font-size:.88rem; }
     .lead__done { display:flex; align-items:center; gap:7px; color:var(--mute); font-size:.86rem; }
+    .gate { position:fixed; inset:0; background:var(--bg); z-index:200; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .gate.hide { display:none; }
+    .gate__box { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:28px; max-width:340px; width:100%; text-align:center; }
   </style>
 </head>
 <body>
+  <div class="gate" id="gate">
+    <div class="gate__box">
+      <h2 style="margin-bottom:8px">Beveiligd</h2>
+      <p style="color:var(--dim);font-size:.9rem;margin-bottom:14px">Voer je pincode in.</p>
+      <input id="pin" type="password" placeholder="Pincode" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-1);color:var(--text);text-align:center" />
+      <button type="button" class="btn btn--primary btn--block" id="pin-btn" style="margin-top:12px">Openen</button>
+      <p id="pin-err" style="color:var(--danger);font-size:.85rem;margin-top:10px;min-height:1em"></p>
+    </div>
+  </div>
+
   <header class="nav">
     <div class="container nav__inner">
       <a class="brand" href="index.html"><svg class="brand__mark" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z" fill="#c9f24d"/></svg>Glan<span>zza</span></a>
@@ -60,6 +73,15 @@
   <script>
   (function () {
     "use strict";
+    var PIN = "2468";
+    var gate = document.getElementById("gate");
+    function checkPin() {
+      if (document.getElementById("pin").value === PIN) { gate.classList.add("hide"); }
+      else { document.getElementById("pin-err").textContent = "Onjuiste pincode."; }
+    }
+    document.getElementById("pin-btn").addEventListener("click", checkPin);
+    document.getElementById("pin").addEventListener("keydown", function (e) { if (e.key === "Enter") checkPin(); });
+
     var LEADS = [
       { n: "Trimsalon Nono", s: "Trimsalon", c: "(NL)", e: "info@trimsalonnono.nl", o: "jullie no-show-beleid — mag ik hierover sparren?", b: "Hoi, ik zag dat Trimsalon Nono een duidelijk no-show-beleid heeft — jullie hebben dus al gemerkt dat het geld kost. Ik bouw een simpele boekingspagina met iDEAL-aanbetaling, zodat no-shows automatisch verdwijnen (klant betaalt bij het boeken). Mag ik jullie 5 minuten vragen hoe jullie dit nu aanpakken?\n\nGroet,\nEliyah — Glanzza" },
       { n: "Hondentrimsalon Murphy", s: "Trimsalon", c: "Geleen", e: "info@hondentrimsalonmurphy.nl", o: "agenda vol, no-shows eruit?", b: "Hoi, ik zag Hondentrimsalon Murphy in Geleen. Hoe plannen jullie de afspraken nu — telefoon, WhatsApp of online? En vragen jullie een aanbetaling? Ik bouw een simpele Nederlandstalige boekingspagina met iDEAL-aanbetaling. Mag ik 5 minuten feedback?\n\nGroet,\nEliyah — Glanzza" },
