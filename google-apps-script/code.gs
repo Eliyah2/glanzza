@@ -47,7 +47,7 @@ function doPost(e) {
 }
 
 function getBusiness(id) {
-  const rows = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten']).getDataRange().getValues();
+  const rows = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail']).getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === id) {
       return {
@@ -56,7 +56,8 @@ function getBusiness(id) {
         naam: rows[i][1],
         aanbetaling: Number(rows[i][2]) || 0,
         betaalLink: rows[i][3] || '',
-        diensten: safeJson(rows[i][4])
+        diensten: safeJson(rows[i][4]),
+        email: String(rows[i][5] || '')
       };
     }
   }
@@ -67,7 +68,7 @@ function addBusiness(d) {
   const id = String(d.id || '').trim();
   const naam = String(d.naam || '').trim();
   if (!id || !naam) return;
-  const sh = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten']);
+  const sh = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail']);
   // Voorkom overschrijven: als dit id al bestaat, niets doen.
   const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
@@ -76,7 +77,7 @@ function addBusiness(d) {
   const diensten = (Array.isArray(d.diensten) ? d.diensten : [])
     .filter(function (s) { return s && s.naam; })
     .map(function (s) { return { naam: String(s.naam).trim(), prijs: Number(s.prijs) || 0, duur: Number(s.duur) || 60 }; });
-  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten)]);
+  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), String(d.email || '').trim()]);
 }
 
 function addLead(d) {
@@ -89,6 +90,24 @@ function addBooking(d) {
   sheet(SHEET_BOEKINGEN, ['Tijdstip', 'Bedrijf', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Auto', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus'])
     .appendRow([new Date(), d.bedrijf || '', d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand']);
   try { createCalendarEvent(d); } catch (e) { /* agenda mag boeking niet blokkeren */ }
+  try { notifyBusiness(d); } catch (e) { /* mail mag boeking niet blokkeren */ }
+}
+
+function notifyBusiness(d) {
+  const b = getBusiness(d.bedrijf);
+  if (!b || !b.gevonden || !b.email) return;
+  MailApp.sendEmail({
+    to: b.email,
+    subject: 'Nieuwe boeking: ' + d.dienst + ' (' + d.datum + ' ' + d.tijd + ')',
+    body: 'Nieuwe boeking via Glanzza!\n\n' +
+      'Dienst: ' + d.dienst + '\n' +
+      'Datum: ' + d.datum + ' ' + d.tijd + '\n' +
+      'Naam: ' + d.naam + '\n' +
+      'Telefoon: ' + d.telefoon + '\n' +
+      'Voertuig: ' + (d.auto || '-') + '\n' +
+      'Aanbetaling: €' + (d.aanbetaling || 0) + '\n\n' +
+      'Alle boekingen vind je in je Google Sheet.'
+  });
 }
 
 function createCalendarEvent(d) {

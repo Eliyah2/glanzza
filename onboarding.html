@@ -67,6 +67,10 @@
               <label for="betaalLink">Wero / Tikkie-betaallink (optioneel)</label>
               <input id="betaalLink" name="betaalLink" type="url" placeholder="https://tikkie.me/..." />
             </div>
+            <div class="field">
+              <label for="email">E-mailadres (voor boekingsmeldingen)</label>
+              <input id="email" name="email" type="email" placeholder="jij@bedrijf.nl" />
+            </div>
 
             <div class="field">
               <label>Diensten &amp; prijzen</label>
@@ -188,7 +192,7 @@
           setErr("id", "Deze linknaam is al in gebruik. Kies een andere.");
           return;
         }
-        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), diensten: diensten });
+        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), email: (document.getElementById("email") ? document.getElementById("email").value.trim() : ""), diensten: diensten });
       });
     });
 
