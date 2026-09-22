@@ -149,22 +149,53 @@
         return;
       }
       leads.forEach(function (L) {
+        var m = mailVoor(L);
+        var zoek = "https://www.google.com/search?q=" + encodeURIComponent(L.naam + " " + (L.stad || "") + " e-mail contact");
         var el = document.createElement("div");
         el.className = "lead";
-        var zoek = "https://www.google.com/search?q=" + encodeURIComponent(L.naam + " " + (L.stad || "") + " e-mail contact");
         el.innerHTML =
-          '<div class="lead__top"><div><div class="lead__name"></div><div class="lead__meta"></div></div>' +
-          (L.email ? '<a class="lead__mail"></a>' : '') + '</div>' +
-          '<div class="lead__acts" style="margin-top:10px">' +
-            '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="' + zoek + '">Zoek contact →</a>' +
-            (L.web ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="' + L.web + '">Website</a>' : '') +
+          '<div class="lead__top"><div><div class="lead__name"></div><div class="lead__meta"></div></div></div>' +
+          '<div class="lead__body"><div class="lead__subj">Onderwerp: <b></b></div><span class="lead__tekst"></span></div>' +
+          '<div class="lead__acts">' +
+            '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="' + zoek + '">🔎 Zoek e-mail →</a>' +
+            '<input class="osm-mail" type="email" placeholder="Plak hier hun e-mail" style="flex:1;min-width:170px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:var(--bg-1);color:var(--text)" />' +
+            '<a class="btn btn--primary btn--sm osm-open" href="#">Open mail-app →</a>' +
+            '<button type="button" class="btn btn--ghost btn--sm osm-copy">Kopieer mail</button>' +
           '</div>';
         el.querySelector(".lead__name").textContent = L.naam;
         el.querySelector(".lead__meta").textContent = (L.niche || "") + (L.stad ? " · " + L.stad : "") + (L.tel ? " · " + L.tel : "") + (L.adres ? " · " + L.adres : "");
-        if (L.email) { var a = el.querySelector(".lead__mail"); a.textContent = L.email; a.href = "mailto:" + L.email; }
+        el.querySelector(".lead__subj b").textContent = m.o;
+        el.querySelector(".lead__tekst").textContent = m.b;
+        var inp = el.querySelector(".osm-mail");
+        var openA = el.querySelector(".osm-open");
+        var copyB = el.querySelector(".osm-copy");
+        if (L.email) inp.value = L.email;
+        function sync() {
+          var e = inp.value.trim();
+          openA.href = e ? mailHref({ e: e, o: m.o, b: m.b }) : "#";
+          copyB.dataset.copy = encodeURIComponent(e) + "|" + encodeURIComponent(m.o) + "|" + encodeURIComponent(m.b);
+        }
+        inp.addEventListener("input", sync); sync();
         box.appendChild(el);
       });
     }
+    var NIEUW_MAILS = {
+      "kapsalon": { o: "vraagje over jullie planning", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Mag ik je iets vragen: hoe komen afspraken bij jullie nu binnen, en vraagt een aanbetaling dan iets af?\n\nIk maak een Nederlandstalige boekingspagina met aanbetaling voor kappers. 5 minuutjes sparren?\n\nGroet,\nEliyah" },
+      "trimsalon": { o: "vraagje over jullie afspraken", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe komen afspraken bij jullie nu binnen — WhatsApp, telefoon of online? En heb je weleens last van klanten die niet komen opdagen?\n\nIk ben een boekingssysteem met aanbetaling aan het maken voor trimsalons. 5 minuten?\n\nGroet,\nEliyah" },
+      "schoonheidssalon": { o: "even een vraagje", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe vangen jullie het op als een klant niet komt opdagen?\n\nIk maak een boekingspagina met aanbetaling voor lokale salons. Mag ik je 5 minuten om je ervaring vragen?\n\nGroet,\nEliyah" },
+      "autobedrijf": { o: "vraagje over afspraken", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe plannen klanten bij jullie een afspraak, en kosten no-shows weleens een dagdeel?\n\nIk maak een simpele boekingspagina met aanbetaling voor autobedrijven. 5 minuten feedback?\n\nGroet,\nEliyah" },
+      "carwash": { o: "hoe plannen klanten bij jullie?", b: "Hoi,\n\nKorte vraag: komen klanten bij [NAAM] in [STAD] op afspraak of gewoon langs?\n\nIk maak een boekingspagina met iDEAL-aanbetaling voor autobedrijven. Zou je 5 minuten hebben om me te vertellen hoe jullie het nu doen?\n\nGroet,\nEliyah" },
+      "tattooshop": { o: "vraagje over jullie afspraken", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Een tattoo-afspraak is vaak lang — een no-show kost dan echt geld.\n\nIk maak een boekingspagina met aanbetaling. Mag ik je 5 minuten vragen hoe jullie dat nu oplossen?\n\nGroet,\nEliyah" },
+      "massage": { o: "even een vraagje", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe gaan jullie om met klanten die niet komen opdagen?\n\nIk maak een simpele boekingspagina met aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah" },
+      "fitness": { o: "vraagje over jullie planning", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe plannen jullie afspraken en proeflessen nu?\n\nIk maak een boekingspagina met aanbetaling. Mag ik je 5 minuten om feedback vragen?\n\nGroet,\nEliyah" },
+      "rijschool": { o: "vraagje over jullie planning", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Hoe plannen jullie rijlessen nu — telefoon of online?\n\nIk maak een simpele boekingspagina met aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah" },
+      "algemeen": { o: "vraagje over jullie afspraken", b: "Hoi,\n\nIk zag [NAAM] in [STAD]. Mag ik je een korte vraag stellen: hoe komen afspraken bij jullie nu binnen, en kosten no-shows weleens geld?\n\nIk maak een boekingspagina met aanbetaling voor lokale bedrijven. 5 minuten feedback?\n\nGroet,\nEliyah" }
+    };
+    function mailVoor(L) {
+      var t = NIEUW_MAILS[L.niche] || NIEUW_MAILS["algemeen"];
+      return { o: t.o, b: t.b.replace(/\[NAAM\]/g, L.naam).replace(/\[STAD\]/g, L.stad || "") };
+    }
+
     function loadOsm() {
       var box = document.getElementById("osm");
       box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Laden…</p>';
@@ -176,6 +207,14 @@
       document.head.appendChild(s);
     }
     document.getElementById("reload-osm").addEventListener("click", loadOsm);
+    document.getElementById("osm").addEventListener("click", function (e) {
+      var b = e.target.closest(".osm-copy"); if (!b || !b.dataset.copy) return;
+      var p = b.dataset.copy.split("|").map(decodeURIComponent);
+      var txt = "Aan: " + p[0] + "\nOnderwerp: " + p[1] + "\n\n" + p[2];
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () { b.textContent = "Gekopieerd ✓"; }, function () { b.textContent = "Handmatig kopiëren"; });
+      } else { b.textContent = "Handmatig kopiëren"; }
+    });
     loadOsm();
 
     // ===== Leads + persoonlijke mails =====

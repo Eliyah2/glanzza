@@ -351,9 +351,11 @@ function dailyLeads() {
     (j.elements || []).forEach(function (e) {
       const t = e.tags || {}; const naam = t.name; if (!naam) return;
       const key = naam + '|' + stad; if (existing[key]) return; existing[key] = 1;
-      const email = t['contact:email'] || t.email || '';
+      let email = t['contact:email'] || t.email || '';
       const tel = t.phone || t['contact:phone'] || '';
       const web = t.website || t['contact:website'] || '';
+      // Probeer het e-mailadres uit de website te halen (als die bekend is)
+      if (!email && web) { try { const html = UrlFetchApp.fetch(web, { muteHttpExceptions: true, followRedirects: true }).getContentText(); const mm = html.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/); if (mm) email = mm[0]; } catch (e) {} }
       const adres = [t['addr:street'], t['addr:housenumber'], t['addr:postcode'], t['addr:city']].filter(Boolean).join(' ');
       sh.appendRow([naam, niche.label, stad, tel, email, web, adres, new Date()]);
       nieuw.push({ naam: naam, label: niche.label, stad: stad, tel: tel, email: email, web: web });
