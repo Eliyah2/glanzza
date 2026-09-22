@@ -304,3 +304,4 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.03em;line-height:1.06}
 .iban__row:last-child{border-bottom:0}
 .iban__row span{color:var(--mute)}
 .iban__row b{color:var(--text);font-weight:600}
+.field__hint{display:block;margin-top:6px;color:var(--mute);font-size:.8rem}

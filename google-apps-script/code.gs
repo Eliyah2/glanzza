@@ -19,14 +19,17 @@ const SITE_URL = 'https://glanzza.vercel.app';     // jouw site (voor links in e
 const STATUS_KOLOM = 9;                            // kolom I = Status in "Bedrijven"
 
 const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status', 'Gratis tot'];
-const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Voertuig', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus'];
+const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Voertuig', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus', 'Duur'];
 
 // --- lezen (boekingspagina haalt hier 1 bedrijf op) ---
 function doGet(e) {
   const id = e.parameter.bedrijf || '';
   const callback = e.parameter.callback || '';
   const data = getBusiness(id);
-  if (data && data.gevonden) { delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; delete data.gratisTot; }
+  if (data && data.gevonden) {
+    data.bezet = getBookedSlots(data);
+    delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; delete data.gratisTot;
+  }
   const json = JSON.stringify(data);
   if (callback) {
     return ContentService.createTextOutput(callback + '(' + json + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -153,7 +156,14 @@ function addBooking(d) {
   const b = getBusiness(d.bedrijf);
   if (!b || !b.gevonden || b.status.toLowerCase() !== 'actief') return;  // alleen actieve bedrijven
 
-  const row = [new Date(), d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand'];
+  // Dubbele afspraak voorkomen (overlappende tijd op dezelfde dag)
+  const duur = Number(d.duur) || 60;
+  const slots = getBookedSlots(b);
+  for (let i = 0; i < slots.length; i++) {
+    if (slotsOverlap(d.datum, d.tijd, duur, slots[i].d, slots[i].t, slots[i].m)) return;
+  }
+
+  const row = [new Date(), d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand', duur];
   let written = false;
   if (b.sheetId) {
     try {
@@ -234,6 +244,36 @@ function sheet(name, headers) {
 
 function safeJson(v) {
   try { const x = JSON.parse(v); return Array.isArray(x) ? x : []; } catch (e) { return []; }
+}
+
+// --- bezette tijden + overlap ---
+function getBookedSlots(b) {
+  const out = [];
+  if (!b || !b.sheetId) return out;
+  try {
+    const t = SpreadsheetApp.openById(b.sheetId).getSheetByName(SHEET_BOEKINGEN);
+    if (!t) return out;
+    const rows = t.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      const dd = fmtD(rows[i][5]), tt = fmtT(rows[i][6]);
+      if (dd && tt) out.push({ d: dd, t: tt, m: Number(rows[i][11]) || 60 });
+    }
+  } catch (e) {}
+  return out;
+}
+function fmtD(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const s = String(v || '').trim(); return s ? s.slice(0, 10) : '';
+}
+function fmtT(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'HH:mm');
+  const s = String(v || '').trim(); return s ? s.slice(0, 5) : '';
+}
+function toMin(t) { const p = String(t).split(':'); return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0); }
+function slotsOverlap(d1, t1, m1, d2, t2, m2) {
+  if (d1 !== d2) return false;
+  const s1 = toMin(t1), s2 = toMin(t2);
+  return s1 < s2 + m2 && s2 < s1 + m1;
 }
 function ok() { return json({ ok: true }); }
 function json(obj) {

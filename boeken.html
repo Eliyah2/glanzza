@@ -102,6 +102,7 @@
                   <label for="tijd">Voorkeurstijd</label>
                   <input id="tijd" name="tijd" type="time" required />
                   <span class="field__err" data-for="tijd"></span>
+                  <span class="field__hint" id="bezet-hint"></span>
                 </div>
               </div>
               <div class="field">
@@ -170,9 +171,22 @@
     var lijst = document.getElementById("diensten-lijst");
 
     var cfg = null;
+    var bezet = [];
+
+    function toMin(t) { var p = String(t).split(":"); return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0); }
+    function overlap(d1, t1, m1, d2, t2, m2) { if (d1 !== d2) return false; var s1 = toMin(t1), s2 = toMin(t2); return s1 < s2 + m2 && s2 < s1 + m1; }
+    function durText(m) { m = Number(m) || 60; return m < 60 ? (m + " min") : ((m % 60 === 0 ? (m / 60) : (Math.round(m / 60 * 10) / 10)) + " uur"); }
+    function updateHint() {
+      var him = document.getElementById("bezet-hint"); if (!him) return;
+      var d = document.getElementById("datum").value;
+      if (!d) { him.textContent = ""; return; }
+      var taken = bezet.filter(function (s) { return s.d === d; }).map(function (s) { return s.t; });
+      him.textContent = taken.length ? ("Bezet op deze dag: " + taken.join(", ")) : "";
+    }
 
     function render(c) {
       cfg = c;
+      bezet = Array.isArray(c.bezet) ? c.bezet : [];
       var aanbetaling = c.aanbetaling || 0;
       var diensten = Array.isArray(c.diensten) ? c.diensten : [];
       var betaalLink = c.betaalLink || "";
@@ -194,7 +208,7 @@
       diensten.forEach(function (d) {
         var opt = document.createElement("option");
         opt.value = d.naam;
-        opt.textContent = d.naam + " (€" + d.prijs + ")";
+        opt.textContent = d.naam + " (€" + d.prijs + (d.duur ? " · " + durText(d.duur) : "") + ")";
         select.appendChild(opt);
         var li = document.createElement("li");
         var sp = document.createElement("span"); sp.textContent = d.naam;
@@ -205,6 +219,8 @@
 
       loading.style.display = "none";
       form.style.display = "block";
+      document.getElementById("datum").addEventListener("change", updateHint);
+      updateHint();
     }
 
     function setErr(name, msg) {
@@ -259,6 +275,12 @@
       if (!vals.datum) { setErr("datum", "Kies een datum."); ok = false; }
       else if (vals.datum < new Date().toISOString().slice(0, 10)) { setErr("datum", "Kies een datum in de toekomst."); ok = false; }
       if (!vals.tijd) { setErr("tijd", "Kies een tijd."); ok = false; }
+      if (vals.datum && vals.tijd && vals.dienst) {
+        var di0 = (cfg.diensten || []).find(function (d) { return d.naam === vals.dienst; });
+        var du0 = di0 ? (di0.duur || 60) : 60;
+        var bots = bezet.some(function (s) { return overlap(vals.datum, vals.tijd, du0, s.d, s.t, s.m || 60); });
+        if (bots) { setErr("tijd", "Deze tijd is al bezet — kies een andere tijd."); ok = false; }
+      }
       if (!ok) return;
 
       if (!CENTRAL_URL) {
