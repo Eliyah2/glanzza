@@ -214,11 +214,21 @@ function sheet(name, headers) {
   const s = ss();
   let sh = s.getSheetByName(name);
   if (!sh) { sh = s.insertSheet(name); sh.appendRow(headers); return sh; }
-  // Vul ontbrekende kolomkoppen aan (voor sheets die met een oudere versie zijn aangemaakt)
-  const row = sh.getRange(1, 1, 1, headers.length).getValues()[0];
-  let changed = false;
-  for (let i = 0; i < headers.length; i++) { if (!String(row[i] || '').trim()) { row[i] = headers[i]; changed = true; } }
-  if (changed) sh.getRange(1, 1, 1, headers.length).setValues([row]);
+  // Controleer rij 1
+  const first = sh.getRange(1, 1, 1, headers.length).getValues()[0].map(function (v) { return String(v || '').trim(); });
+  if (first[0] === headers[0]) {
+    // rij 1 is de kopregel → vul ontbrekende koppen aan (voor oudere sheets)
+    let changed = false;
+    for (let i = 0; i < headers.length; i++) { if (!first[i]) { first[i] = headers[i]; changed = true; } }
+    if (changed) sh.getRange(1, 1, 1, headers.length).setValues([first]);
+  } else if (sh.getLastRow() === 0) {
+    // lege sheet → zet de kopregel
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  } else {
+    // rij 1 bevat DATA (geen kop) → voeg een kopregel bovenaan in
+    sh.insertRowBefore(1);
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
   return sh;
 }
 
