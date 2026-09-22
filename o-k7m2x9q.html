@@ -73,6 +73,13 @@
         </div>
       </div>
 
+      <div class="card-blk">
+        <h2>🆕 Automatisch gevonden leads</h2>
+        <p style="color:var(--mute);font-size:.85rem;margin-bottom:12px">Deze komen automatisch uit OpenStreetMap (gratis bron). Je krijgt er dagelijks een mail over. Zoek het contact via de knop.</p>
+        <div id="osm"></div>
+        <button type="button" class="btn btn--ghost btn--sm" id="reload-osm" style="margin-top:8px">Verversen</button>
+      </div>
+
       <div class="oh__bar">
         <span>Verstuurd: <b id="cnt">0</b> / <b id="tot">0</b></span>
       </div>
@@ -132,6 +139,44 @@
     function dailySeed() { var d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
     renderFinds(dailySeed());
     document.getElementById("refresh").addEventListener("click", function () { renderFinds(Math.floor(Math.random() * 1e9)); });
+
+    // ===== Automatisch gevonden leads (uit de backend / OpenStreetMap) =====
+    function renderOsm(leads) {
+      var box = document.getElementById("osm");
+      box.innerHTML = "";
+      if (!leads || !leads.length) {
+        box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Nog geen automatisch gevonden leads. Zet de dagelijkse zoektocht aan via Code.gs → voer <b>setupDailyTrigger</b> één keer uit. Daarna verschijnen hier + in je mail dagelijks nieuwe bedrijven.</p>';
+        return;
+      }
+      leads.forEach(function (L) {
+        var el = document.createElement("div");
+        el.className = "lead";
+        var zoek = "https://www.google.com/search?q=" + encodeURIComponent(L.naam + " " + (L.stad || "") + " e-mail contact");
+        el.innerHTML =
+          '<div class="lead__top"><div><div class="lead__name"></div><div class="lead__meta"></div></div>' +
+          (L.email ? '<a class="lead__mail"></a>' : '') + '</div>' +
+          '<div class="lead__acts" style="margin-top:10px">' +
+            '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="' + zoek + '">Zoek contact →</a>' +
+            (L.web ? '<a class="btn btn--ghost btn--sm" target="_blank" rel="noopener" href="' + L.web + '">Website</a>' : '') +
+          '</div>';
+        el.querySelector(".lead__name").textContent = L.naam;
+        el.querySelector(".lead__meta").textContent = (L.niche || "") + (L.stad ? " · " + L.stad : "") + (L.tel ? " · " + L.tel : "") + (L.adres ? " · " + L.adres : "");
+        if (L.email) { var a = el.querySelector(".lead__mail"); a.textContent = L.email; a.href = "mailto:" + L.email; }
+        box.appendChild(el);
+      });
+    }
+    function loadOsm() {
+      var box = document.getElementById("osm");
+      box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Laden…</p>';
+      var n = "__glanzza_osm_" + Date.now();
+      window[n] = function (data) { try { renderOsm(data && data.leads || []); } finally { delete window[n]; } };
+      var s = document.createElement("script");
+      s.src = CENTRAL_URL + "?leads=1" + String.fromCharCode(38) + "callback=" + n;
+      s.onerror = function () { box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Kon de leads niet laden.</p>'; };
+      document.head.appendChild(s);
+    }
+    document.getElementById("reload-osm").addEventListener("click", loadOsm);
+    loadOsm();
 
     // ===== Leads + persoonlijke mails =====
     var LEADS = [
