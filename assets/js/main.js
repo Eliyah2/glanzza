@@ -3,7 +3,7 @@
   "use strict";
 
   // === VUL IN: jouw Google Apps Script web-app URL (voor het lead-formulier) ===
-  var LEAD_GAS_URL = "https://script.google.com/macros/s/AKfycbz3hWa4kdSB4ccPS-SkBKmlpBsLx8Bp20cwlyBCM6OfFfhOzWlZbI3-ryHegM_NlmtlPw/exec";
+  var LEAD_GAS_URL = "https://script.google.com/macros/s/AKfycbzWPoe8aoStJ-lzgUvafzEZyal48CFRmQwj3rptBCzFCVVZvSt_YogooWQdH08fddEA5A/exec";
   // =========================================================================
 
   document.addEventListener("DOMContentLoaded", function () {
