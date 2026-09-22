@@ -92,18 +92,17 @@
                   <span class="field__err" data-for="telefoon"></span>
                 </div>
               </div>
-              <div class="row2">
-                <div class="field">
-                  <label for="datum">Voorkeursdatum</label>
-                  <input id="datum" name="datum" type="date" required />
-                  <span class="field__err" data-for="datum"></span>
-                </div>
-                <div class="field">
-                  <label for="tijd">Voorkeurstijd</label>
-                  <input id="tijd" name="tijd" type="time" required />
-                  <span class="field__err" data-for="tijd"></span>
-                  <span class="field__hint" id="bezet-hint"></span>
-                </div>
+              <div class="field">
+                <label for="datum">Voorkeursdatum</label>
+                <input id="datum" name="datum" type="date" required />
+                <span class="field__err" data-for="datum"></span>
+              </div>
+              <div class="field">
+                <label>Voorkeurstijd</label>
+                <div class="slots" id="slots"></div>
+                <input id="tijd" name="tijd" type="hidden" />
+                <span class="field__err" data-for="tijd"></span>
+                <span class="field__hint" id="bezet-hint"></span>
               </div>
               <div class="field">
                 <label for="auto">Auto / voertuig (optioneel)</label>
@@ -176,17 +175,49 @@
     function toMin(t) { var p = String(t).split(":"); return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0); }
     function overlap(d1, t1, m1, d2, t2, m2) { if (d1 !== d2) return false; var s1 = toMin(t1), s2 = toMin(t2); return s1 < s2 + m2 && s2 < s1 + m1; }
     function durText(m) { m = Number(m) || 60; return m < 60 ? (m + " min") : ((m % 60 === 0 ? (m / 60) : (Math.round(m / 60 * 10) / 10)) + " uur"); }
-    function updateHint() {
-      var him = document.getElementById("bezet-hint"); if (!him) return;
+    var openVan = "09:00", openTot = "18:00", slotMinuten = 30;
+
+    function renderSlots() {
+      var box = document.getElementById("slots");
+      var him = document.getElementById("bezet-hint");
+      if (!box) return;
+      box.innerHTML = "";
+      document.getElementById("tijd").value = "";
       var d = document.getElementById("datum").value;
-      if (!d) { him.textContent = ""; return; }
-      var taken = bezet.filter(function (s) { return s.d === d; }).map(function (s) { return s.t; });
-      him.textContent = taken.length ? ("Bezet op deze dag: " + taken.join(", ")) : "";
+      if (!d) { if (him) him.textContent = "Kies eerst een datum."; return; }
+      var sel = document.getElementById("dienst").value;
+      var di = (cfg && cfg.diensten ? cfg.diensten : []).find(function (x) { return x.naam === sel; });
+      var du = di ? (di.duur || 60) : 60;
+      var van = toMin(openVan), tot = toMin(openTot);
+      if (tot <= van) tot = van + 60;
+      var n = 0;
+      for (var t = van; t <= tot - du; t += slotMinuten) {
+        var hh = ("0" + Math.floor(t / 60)).slice(-2);
+        var mm = ("0" + (t % 60)).slice(-2);
+        var tijd = hh + ":" + mm;
+        var taken = bezet.some(function (s) { return overlap(d, tijd, du, s.d, s.t, s.m || 60); });
+        var b = document.createElement("button");
+        b.type = "button"; b.dataset.t = tijd;
+        b.className = "slot" + (taken ? " slot--bezet" : "");
+        b.textContent = tijd;
+        if (taken) b.disabled = true;
+        box.appendChild(b); n++;
+      }
+      if (him) him.textContent = n ? "" : "Geen tijden beschikbaar op deze dag.";
+    }
+
+    function onSlotsClick(e) {
+      var b = (e.target && e.target.closest) ? e.target.closest(".slot") : null;
+      if (!b || b.disabled) return;
+      document.getElementById("tijd").value = b.dataset.t;
+      Array.prototype.forEach.call(document.getElementById("slots").querySelectorAll(".slot"), function (c) { c.classList.toggle("slot--sel", c === b); });
     }
 
     function render(c) {
       cfg = c;
       bezet = Array.isArray(c.bezet) ? c.bezet : [];
+      openVan = c.openVan || "09:00";
+      openTot = c.openTot || "18:00";
       var aanbetaling = c.aanbetaling || 0;
       var diensten = Array.isArray(c.diensten) ? c.diensten : [];
       var betaalLink = c.betaalLink || "";
@@ -219,8 +250,10 @@
 
       loading.style.display = "none";
       form.style.display = "block";
-      document.getElementById("datum").addEventListener("change", updateHint);
-      updateHint();
+      document.getElementById("datum").addEventListener("change", renderSlots);
+      document.getElementById("dienst").addEventListener("change", renderSlots);
+      document.getElementById("slots").addEventListener("click", onSlotsClick);
+      renderSlots();
     }
 
     function setErr(name, msg) {

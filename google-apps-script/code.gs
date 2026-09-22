@@ -18,7 +18,7 @@ const SPREADSHEET_ID = '';                         // alleen nodig als het scrip
 const SITE_URL = 'https://glanzza.vercel.app';     // jouw site (voor links in e-mails)
 const STATUS_KOLOM = 9;                            // kolom I = Status in "Bedrijven"
 
-const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status', 'Gratis tot'];
+const BEDRIJF_KOLOMMEN = ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID', 'Status', 'Gratis tot', 'Open van', 'Open tot'];
 const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Voertuig', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus', 'Duur'];
 
 // --- lezen (boekingspagina haalt hier 1 bedrijf op) ---
@@ -68,7 +68,8 @@ function getBusiness(id) {
         id: rows[i][0], naam: rows[i][1], aanbetaling: Number(rows[i][2]) || 0,
         betaalLink: rows[i][3] || '', diensten: safeJson(rows[i][4]),
         email: String(rows[i][5] || ''), sheetId: String(rows[i][6] || ''),
-        calendarId: String(rows[i][7] || ''), status: status, gratisTot: (isNaN(gratisTotMs) ? '' : gt)
+        calendarId: String(rows[i][7] || ''), status: status, gratisTot: (isNaN(gratisTotMs) ? '' : gt),
+        openVan: String(rows[i][10] || '09:00'), openTot: String(rows[i][11] || '18:00')
       };
       // Lazy-activatie: Status = 'actief' maar nog geen Sheet/Agenda? → nu aanmaken.
       if (b.status.toLowerCase() === 'actief' && (!b.sheetId || !b.calendarId)) {
@@ -94,7 +95,7 @@ function addBusiness(d) {
     .map(function (s) { return { naam: String(s.naam).trim(), prijs: Number(s.prijs) || 0, duur: Number(s.duur) || 60 }; });
   const email = String(d.email || '').trim();
   // Aanmelding = 'wacht'. Sheet + Agenda worden pas NA betaling aangemaakt.
-  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, '', '', 'wacht', '']);
+  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), email, '', '', 'wacht', '', String(d.openVan || '09:00').trim(), String(d.openTot || '18:00').trim()]);
   try {
     MailApp.sendEmail({
       to: Session.getEffectiveUser().getEmail(),

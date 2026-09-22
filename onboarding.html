@@ -67,6 +67,16 @@
               <label for="betaalLink">Wero / Tikkie-betaallink (optioneel)</label>
               <input id="betaalLink" name="betaalLink" type="url" placeholder="https://tikkie.me/..." />
             </div>
+            <div class="row2">
+              <div class="field">
+                <label for="openVan">Open van</label>
+                <input id="openVan" name="openVan" type="time" value="09:00" />
+              </div>
+              <div class="field">
+                <label for="openTot">Open tot</label>
+                <input id="openTot" name="openTot" type="time" value="18:00" />
+              </div>
+            </div>
             <div class="field">
               <label for="email">E-mailadres (voor boekingsmeldingen)</label>
               <input id="email" name="email" type="email" placeholder="jij@bedrijf.nl" />
@@ -207,7 +217,7 @@
           setErr("id", "Deze linknaam is al in gebruik. Kies een andere.");
           return;
         }
-        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), email: (document.getElementById("email") ? document.getElementById("email").value.trim() : ""), diensten: diensten });
+        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), email: (document.getElementById("email") ? document.getElementById("email").value.trim() : ""), openVan: (document.getElementById("openVan") ? document.getElementById("openVan").value : "09:00"), openTot: (document.getElementById("openTot") ? document.getElementById("openTot").value : "18:00"), diensten: diensten });
       });
     });
 
