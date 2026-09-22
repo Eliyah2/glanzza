@@ -292,3 +292,9 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.03em;line-height:1.06}
 @media (max-width:860px){ .founders{grid-template-columns:1fr} }
 @media (max-width:900px){ .feature--wide,.feature--cta{grid-column:auto} }
 @media (prefers-reduced-motion:reduce){ .accent{animation:none} }
+/* founders gecentreerd in het midden + hero-doel */
+.lead--goal{margin-top:-14px;font-size:1rem;color:var(--dim)}
+.lead--goal b{color:var(--text)}
+.founders.founders--center{grid-template-columns:1fr;text-align:center;max-width:680px}
+.founders__list--inline{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 24px;margin:16px 0 18px}
+.founders--center .lead__form{max-width:480px;margin:24px auto 0;text-align:left}
