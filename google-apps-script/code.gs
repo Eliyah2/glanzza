@@ -27,7 +27,7 @@ function doGet(e) {
   const id = e.parameter.bedrijf || '';
   const callback = e.parameter.callback || '';
   const data = getBusiness(id);
-  if (data && data.gevonden) { delete data.email; }   // PRIVÉ: e-mail nooit naar de publieke pagina sturen
+  if (data && data.gevonden) { delete data.email; delete data.sheetId; delete data.calendarId; }   // PRIVÉ: niets gevoeligs naar de publieke pagina sturen
   const json = JSON.stringify(data);
   if (callback) {
     // JSONP: werkt zonder CORS-gedoe
@@ -51,7 +51,7 @@ function doPost(e) {
 }
 
 function getBusiness(id) {
-  const rows = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID']).getDataRange().getValues();
+  const rows = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID']).getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === id) {
       return {
@@ -62,7 +62,8 @@ function getBusiness(id) {
         betaalLink: rows[i][3] || '',
         diensten: safeJson(rows[i][4]),
         email: String(rows[i][5] || ''),
-        sheetId: String(rows[i][6] || '')
+        sheetId: String(rows[i][6] || ''),
+        calendarId: String(rows[i][7] || '')
       };
     }
   }
@@ -73,7 +74,7 @@ function addBusiness(d) {
   const id = String(d.id || '').trim();
   const naam = String(d.naam || '').trim();
   if (!id || !naam) return;
-  const sh = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID']);
+  const sh = sheet(SHEET_BEDRIJVEN, ['ID', 'Naam', 'Aanbetaling', 'Betaallink', 'Diensten', 'E-mail', 'Sheet-ID', 'Agenda-ID']);
   // Voorkom overschrijven: als dit id al bestaat, niets doen.
   const rows = sh.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
@@ -94,7 +95,7 @@ function addBusiness(d) {
     if (d.email) { try { ss.addEditor(String(d.email).trim()); } catch (e) {} }
   } catch (e) { sheetId = ''; }
 
-  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), String(d.email || '').trim(), sheetId]);
+  sh.appendRow([id, naam, Number(d.aanbetaling) || 0, String(d.betaalLink || '').trim(), JSON.stringify(diensten), String(d.email || '').trim(), sheetId, '']);
 }
 
 function addLead(d) {
@@ -122,7 +123,7 @@ function addBooking(d) {
     sheet(SHEET_BOEKINGEN, ['Tijdstip', 'Bedrijf', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum', 'Tijd', 'Auto', 'Opmerkingen', 'Aanbetaling', 'Betaalstatus'])
       .appendRow([new Date(), d.bedrijf || '', d.naam || '', d.telefoon || '', d.dienst || '', d.prijs || '', d.datum || '', d.tijd || '', d.auto || '', d.opmerkingen || '', d.aanbetaling || '', 'openstaand']);
   }
-  try { createCalendarEvent(d); } catch (e) { /* agenda mag boeking niet blokkeren */ }
+  try { createCalendarEvent(d, (b && b.gevonden ? b.calendarId : '')); } catch (e) { /* agenda mag boeking niet blokkeren */ }
   try { notifyBusiness(d); } catch (e) { /* mail mag boeking niet blokkeren */ }
 }
 
@@ -143,14 +144,17 @@ function notifyBusiness(d) {
   });
 }
 
-function createCalendarEvent(d) {
+function createCalendarEvent(d, calendarId) {
   if (!d.datum || !d.tijd) return;
   const start = new Date(d.datum + 'T' + d.tijd + ':00');
   if (isNaN(start.getTime())) return;
   const eind = new Date(start.getTime() + (Number(d.duur) || 60) * 60000);
-  const cal = CALENDAR_ID ? CalendarApp.getCalendarById(CALENDAR_ID) : CalendarApp.getDefaultCalendar();
+  let cal = null;
+  const id = calendarId || CALENDAR_ID;
+  if (id) { try { cal = CalendarApp.getCalendarById(id); } catch (e) { cal = null; } }
+  if (!cal) cal = CalendarApp.getDefaultCalendar();
   cal.createEvent(d.naam + ' — ' + d.dienst, start, eind, {
-    description: 'Telefoon: ' + (d.telefoon || '') + '\nAuto: ' + (d.auto || '') + '\nPrijs: €' + (d.prijs || '') + '\nAanbetaling: €' + (d.aanbetaling || '')
+    description: 'Telefoon: ' + (d.telefoon || '') + '\nVoertuig: ' + (d.auto || '') + '\nPrijs: €' + (d.prijs || '') + '\nAanbetaling: €' + (d.aanbetaling || '')
   });
 }
 
