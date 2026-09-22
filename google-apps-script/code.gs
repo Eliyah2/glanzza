@@ -213,7 +213,12 @@ function ss() {
 function sheet(name, headers) {
   const s = ss();
   let sh = s.getSheetByName(name);
-  if (!sh) { sh = s.insertSheet(name); sh.appendRow(headers); }
+  if (!sh) { sh = s.insertSheet(name); sh.appendRow(headers); return sh; }
+  // Vul ontbrekende kolomkoppen aan (voor sheets die met een oudere versie zijn aangemaakt)
+  const row = sh.getRange(1, 1, 1, headers.length).getValues()[0];
+  let changed = false;
+  for (let i = 0; i < headers.length; i++) { if (!String(row[i] || '').trim()) { row[i] = headers[i]; changed = true; } }
+  if (changed) sh.getRange(1, 1, 1, headers.length).setValues([row]);
   return sh;
 }
 
