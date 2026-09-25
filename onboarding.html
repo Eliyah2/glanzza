@@ -205,7 +205,7 @@
       var s = document.createElement("script");
       s.id=n;
       s.src = CENTRAL_URL + "?bedrijf=" + encodeURIComponent(id) + "&callback=" + n;
-      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); try{ delete window[n]; }catch(e){} cb(false); };
+      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); cb(false); };
       document.head.appendChild(s);
     }
 

@@ -252,20 +252,27 @@
         document.getElementById("pay-bedrag").textContent = "€" + aanbetaling;
         if (heroWrap) heroWrap.style.display = "";
       } else {
-        document.getElementById("dep-hero").textContent = "—";
-        if (heroWrap) heroWrap.innerHTML = 'Boek direct bij <b>' + (c.naam || "Glanzza") + '</b> — zonder aanbetaling.';
         document.getElementById("pay-bedrag").textContent = "€0";
+        if (heroWrap) {
+          heroWrap.textContent = "";
+          heroWrap.appendChild(document.createTextNode("Boek direct bij "));
+          var _b = document.createElement("b"); _b.textContent = c.naam || "Glanzza"; heroWrap.appendChild(_b);
+          heroWrap.appendChild(document.createTextNode(" — zonder aanbetaling."));
+        }
       }
       var payLink = document.getElementById("pay-link");
       if (aanbetaling > 0 && betaalLink) {
         payLink.href = betaalLink;
         payLink.textContent = "Betaal €" + aanbetaling + " via Wero →";
         payLink.style.display = "";
+        payLink.removeAttribute("aria-disabled");
+        payLink.style.pointerEvents = "";
       } else if (aanbetaling > 0 && !betaalLink) {
         payLink.href = "#";
         payLink.textContent = "Aanbetaling wordt ter plekke verrekend";
         payLink.style.display = "";
         payLink.setAttribute("aria-disabled","true");
+        payLink.style.pointerEvents = "none";
       } else {
         payLink.style.display = "none";
       }
@@ -309,12 +316,13 @@
       if (!CENTRAL_URL) { cb(null); return; }
       if (!bedrijfId) { cb({ gevonden:false, error:"geen_id" }); return; }
       var n = "__glanzza_" + Date.now() + "_" + Math.random().toString(36).slice(2,6);
-      var timer = setTimeout(function(){ try{ delete window[n]; }catch(e){} cb(null); }, 9000);
-      window[n] = function (data) { clearTimeout(timer); try { cb(data); } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } };
+      var done=false;
+      var timer = setTimeout(function(){ if(done) return; done=true; try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); cb(null); }, 9000);
+      window[n] = function (data) { if(done) return; done=true; clearTimeout(timer); try { cb(data); } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } };
       var s = document.createElement("script");
       s.id = n;
       s.src = CENTRAL_URL + "?bedrijf=" + encodeURIComponent(bedrijfId) + "&callback=" + n;
-      s.onerror = function () { clearTimeout(timer); cb(null); };
+      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); cb(null); };
       document.head.appendChild(s);
     }
 
