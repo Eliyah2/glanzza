@@ -6,6 +6,7 @@
   <title>Boek een afspraak</title>
   <meta name="description" content="Boek een afspraak en betaal je aanbetaling veilig via Wero." />
   <meta name="theme-color" content="#070a0e" />
+  <link rel="canonical" href="https://glanzza.vercel.app/boeken.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <style>
@@ -149,7 +150,7 @@
   </main>
 
   <footer class="footer" style="padding:28px 0">
-    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 <span id="footer-naam">Glanzza</span></span></div></div>
+    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center;flex-wrap:wrap;gap:10px"><span>© 2026 <span id="footer-naam">Glanzza</span></span><span><a href="privacy.html" style="color:var(--mute)">Privacy</a> · <a href="voorwaarden.html" style="color:var(--mute)">Voorwaarden</a></span></div></div>
   </footer>
 
   <script>
@@ -178,6 +179,12 @@
     function durText(m) { m = Number(m) || 60; return m < 60 ? (m + " min") : ((m % 60 === 0 ? (m / 60) : (Math.round(m / 60 * 10) / 10)) + " uur"); }
     var openVan = "09:00", openTot = "18:00", slotMinuten = 30;
 
+    function localToday() {
+      var d = new Date();
+      var mm = String(d.getMonth()+1).padStart(2,'0');
+      var dd = String(d.getDate()).padStart(2,'0');
+      return d.getFullYear()+'-'+mm+'-'+dd;
+    }
     function renderSlots() {
       var box = document.getElementById("slots");
       var him = document.getElementById("bezet-hint");
@@ -186,13 +193,14 @@
       document.getElementById("tijd").value = "";
       var d = document.getElementById("datum").value;
       if (!d) { if (him) him.textContent = "Kies eerst een datum."; return; }
+      if (d < localToday()) { if (him) him.textContent = "Kies een datum in de toekomst."; return; }
       var dag = new Date(d + "T12:00:00").getDay();
       if (gesloten.indexOf(dag) !== -1) { if (him) him.textContent = "Op deze dag zijn we gesloten — kies een andere datum."; return; }
       var sel = document.getElementById("dienst").value;
       var di = (cfg && cfg.diensten ? cfg.diensten : []).find(function (x) { return x.naam === sel; });
       var du = di ? (di.duur || 60) : 60;
       var van = toMin(openVan), tot = toMin(openTot);
-      if (tot <= van) tot = van + 60;
+      if (tot <= van) { if (him) him.textContent = "Openingstijden kloppen niet — neem contact op."; return; }
       var n = 0;
       for (var t = van; t <= tot - du; t += slotMinuten) {
         var hh = ("0" + Math.floor(t / 60)).slice(-2);
@@ -203,17 +211,24 @@
         b.type = "button"; b.dataset.t = tijd;
         b.className = "slot" + (taken ? " slot--bezet" : "");
         b.textContent = tijd;
-        if (taken) b.disabled = true;
+        b.setAttribute("aria-pressed", "false");
+        if (taken) { b.disabled = true; b.title = "Bezet"; }
         box.appendChild(b); n++;
       }
-      if (him) him.textContent = n ? "" : "Geen tijden beschikbaar op deze dag.";
+      if (him) him.textContent = n ? (bezet.length ? "Grijs = bezet" : "") : "Geen tijden beschikbaar op deze dag.";
     }
 
     function onSlotsClick(e) {
       var b = (e.target && e.target.closest) ? e.target.closest(".slot") : null;
       if (!b || b.disabled) return;
       document.getElementById("tijd").value = b.dataset.t;
-      Array.prototype.forEach.call(document.getElementById("slots").querySelectorAll(".slot"), function (c) { c.classList.toggle("slot--sel", c === b); });
+      Array.prototype.forEach.call(document.getElementById("slots").querySelectorAll(".slot"), function (c) {
+        var sel = c === b;
+        c.classList.toggle("slot--sel", sel);
+        c.setAttribute("aria-pressed", sel ? "true" : "false");
+      });
+      var err = form.querySelector('.field__err[data-for="tijd"]');
+      if (err) err.textContent = "";
     }
 
     function render(c) {
@@ -222,18 +237,38 @@
       openVan = c.openVan || "09:00";
       openTot = c.openTot || "18:00";
       gesloten = String(c.gesloten || "").split(",").map(function (x) { return parseInt(x, 10); }).filter(function (x) { return !isNaN(x); });
-      var aanbetaling = c.aanbetaling || 0;
+      var aanbetaling = Number(c.aanbetaling) || 0;
       var diensten = Array.isArray(c.diensten) ? c.diensten : [];
-      var betaalLink = c.betaalLink || "";
+      var betaalLink = String(c.betaalLink || "").trim();
+      var heroWrap = document.getElementById("dep-hero").parentElement;
 
       document.getElementById("brand-naam").textContent = c.naam || "Glanzza";
       document.getElementById("bedrijf-naam").textContent = c.naam || "Glanzza";
       document.getElementById("footer-naam").textContent = c.naam || "Glanzza";
       document.title = "Boek een afspraak — " + (c.naam || "Glanzza");
 
-      document.getElementById("dep-hero").textContent = "€" + aanbetaling;
-      document.getElementById("pay-bedrag").textContent = "€" + aanbetaling;
-      document.getElementById("pay-link").href = betaalLink || "#";
+      if (aanbetaling > 0) {
+        document.getElementById("dep-hero").textContent = "€" + aanbetaling;
+        document.getElementById("pay-bedrag").textContent = "€" + aanbetaling;
+        if (heroWrap) heroWrap.style.display = "";
+      } else {
+        document.getElementById("dep-hero").textContent = "—";
+        if (heroWrap) heroWrap.innerHTML = 'Boek direct bij <b id="bedrijf-naam">' + (c.naam || "Glanzza") + '</b> — zonder aanbetaling.';
+        document.getElementById("pay-bedrag").textContent = "€0";
+      }
+      var payLink = document.getElementById("pay-link");
+      if (aanbetaling > 0 && betaalLink) {
+        payLink.href = betaalLink;
+        payLink.textContent = "Betaal €" + aanbetaling + " via Wero →";
+        payLink.style.display = "";
+      } else if (aanbetaling > 0 && !betaalLink) {
+        payLink.href = "#";
+        payLink.textContent = "Aanbetaling wordt ter plekke verrekend";
+        payLink.style.display = "";
+        payLink.setAttribute("aria-disabled","true");
+      } else {
+        payLink.style.display = "none";
+      }
 
       select.innerHTML = '<option value="">— kies een dienst —</option>';
       lijst.innerHTML = "";
@@ -252,9 +287,12 @@
         lijst.appendChild(li);
       });
 
+      var datInp = document.getElementById("datum");
+      datInp.min = localToday();
+      datInp.value = "";
       loading.style.display = "none";
       form.style.display = "block";
-      document.getElementById("datum").addEventListener("change", renderSlots);
+      datInp.addEventListener("change", renderSlots);
       document.getElementById("dienst").addEventListener("change", renderSlots);
       document.getElementById("slots").addEventListener("click", onSlotsClick);
       renderSlots();
@@ -268,23 +306,36 @@
     }
 
     function loadConfig(cb) {
-      if (!CENTRAL_URL || !bedrijfId) { cb(null); return; }
-      var n = "__glanzza_" + Date.now();
-      window[n] = function (data) { try { cb(data); } finally { delete window[n]; } };
+      if (!CENTRAL_URL) { cb(null); return; }
+      if (!bedrijfId) { cb({ gevonden:false, error:"geen_id" }); return; }
+      var n = "__glanzza_" + Date.now() + "_" + Math.random().toString(36).slice(2,6);
+      var timer = setTimeout(function(){ try{ delete window[n]; }catch(e){} cb(null); }, 9000);
+      window[n] = function (data) { clearTimeout(timer); try { cb(data); } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } };
       var s = document.createElement("script");
+      s.id = n;
       s.src = CENTRAL_URL + "?bedrijf=" + encodeURIComponent(bedrijfId) + "&callback=" + n;
-      s.onerror = function () { cb(null); };
+      s.onerror = function () { clearTimeout(timer); cb(null); };
       document.head.appendChild(s);
     }
 
     loadConfig(function (data) {
       if (!data || !data.gevonden) {
-        loading.textContent = "⚠️ Dit bedrijf is niet gevonden. Controleer de link.";
+        if (data && data.error === "geen_id") {
+          loading.innerHTML = "⚠️ Geen bedrijf geselecteerd.<br><span style='font-size:.88rem;color:var(--dim)'>Gebruik je persoonlijke boekingslink of ga naar <a href='onboarding.html' style='color:var(--brand)'>aanmelden</a>.</span>";
+        } else {
+          loading.innerHTML = "⚠️ Dit bedrijf is niet gevonden. Controleer de link.<br><span style='font-size:.88rem;color:var(--dim)'>Klopt de linknaam in de URL? Vraag het bedrijf om de juiste link.</span>";
+        }
         document.getElementById("side").style.display = "none";
         return;
       }
-      if (String(data.status || "").toLowerCase() !== "actief") {
-        loading.textContent = "⏳ Deze boekingspagina is nog niet actief. Neem contact op met het bedrijf.";
+      var st = String(data.status || "").toLowerCase();
+      if (st === "verlopen") {
+        loading.innerHTML = "⏳ Deze boekingspagina is tijdelijk offline (abonnement verlopen).<br><span style='font-size:.88rem;color:var(--dim)'>Neem contact op met het bedrijf voor een nieuwe link.</span>";
+        document.getElementById("side").style.display = "none";
+        return;
+      }
+      if (st !== "actief") {
+        loading.innerHTML = "⏳ Deze boekingspagina is nog niet actief.<br><span style='font-size:.88rem;color:var(--dim)'>Het bedrijf wordt momenteel geactiveerd — probeer later opnieuw of neem contact op.</span>";
         document.getElementById("side").style.display = "none";
         return;
       }
@@ -307,11 +358,12 @@
       var ok = true;
       if (!vals.dienst) { setErr("dienst", "Kies een dienst."); ok = false; }
       if (!vals.naam) { setErr("naam", "Vul je naam in."); ok = false; }
+      else if (vals.naam.length < 2) { setErr("naam", "Vul minimaal 2 tekens in."); ok = false; }
       if (!vals.telefoon) { setErr("telefoon", "Vul je telefoonnummer in."); ok = false; }
-      else if (!/^[0-9+\s()-]{8,}$/.test(vals.telefoon)) { setErr("telefoon", "Vul een geldig telefoonnummer in."); ok = false; }
+      else if (!/^[0-9+\s()-]{8,}$/.test(vals.telefoon)) { setErr("telefoon", "Vul een geldig telefoonnummer in (min. 8 cijfers)."); ok = false; }
       if (!vals.datum) { setErr("datum", "Kies een datum."); ok = false; }
-      else if (vals.datum < new Date().toISOString().slice(0, 10)) { setErr("datum", "Kies een datum in de toekomst."); ok = false; }
-      if (!vals.tijd) { setErr("tijd", "Kies een tijd."); ok = false; }
+      else if (vals.datum < localToday()) { setErr("datum", "Kies een datum in de toekomst."); ok = false; }
+      if (!vals.tijd) { setErr("tijd", "Kies een tijd hierboven."); ok = false; }
       if (vals.datum && vals.tijd && vals.dienst) {
         var di0 = (cfg.diensten || []).find(function (d) { return d.naam === vals.dienst; });
         var du0 = di0 ? (di0.duur || 60) : 60;
@@ -354,12 +406,22 @@
           body: JSON.stringify(data),
         });
         status.setAttribute("data-state", "ok");
-        status.textContent = "✅ Boeking verstuurd!";
+        var dep = Number(cfg.aanbetaling) || 0;
+        if (dep > 0 && cfg.betaalLink) {
+          status.textContent = "✅ Boeking ontvangen! Betaal nu je aanbetaling hieronder.";
+        } else if (dep > 0) {
+          status.textContent = "✅ Boeking ontvangen! Je hoort snel van ons over de aanbetaling.";
+        } else {
+          status.textContent = "✅ Boeking ontvangen! Je hoort snel van ons.";
+        }
+        // Optimistisch bezet bijwerken zodat de tijd direct grijs wordt
+        try { bezet.push({ d: vals.datum, t: vals.tijd, m: Number(data.duur)||60 }); renderSlots(); } catch(e){}
         form.reset();
-        if (cfg.betaalLink) { pay.classList.add("show"); }
+        document.getElementById("tijd").value = "";
+        if (Number(cfg.aanbetaling) > 0) { pay.classList.add("show"); pay.scrollIntoView({behavior:"smooth", block:"center"}); }
       } catch (err) {
         status.setAttribute("data-state", "err");
-        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw.";
+        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw of bel het bedrijf.";
       } finally {
         btn.removeAttribute("aria-disabled");
       }

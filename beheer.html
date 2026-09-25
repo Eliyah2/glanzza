@@ -103,7 +103,7 @@
   </main>
 
   <footer class="footer" style="padding:28px 0">
-    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div>
+    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center;flex-wrap:wrap;gap:10px"><span>© 2026 Glanzza</span><span><a href="privacy.html" style="color:var(--mute)">Privacy</a> · <a href="voorwaarden.html" style="color:var(--mute)">Voorwaarden</a></span></div></div>
   </footer>
 
   <script>
@@ -137,12 +137,16 @@
     }
     document.getElementById("add-svc").addEventListener("click", function () { dienstenBox.appendChild(serviceRow()); });
 
+    function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
     function loadConfig(cb) {
-      var n = "__glanzza_beheer_" + Date.now();
-      window[n] = function (data) { try { cb(data); } finally { delete window[n]; } };
+      var n = "__glanzza_beheer_" + Date.now() + "_" + Math.random().toString(36).slice(2,5);
+      var done=false;
+      var timer=setTimeout(function(){ if(done) return; done=true; try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); loadStatus.textContent="⚠️ Laden duurt te lang — controleer je verbinding."; cb(null); }, 9000);
+      window[n] = function (data) { if(done) return; done=true; clearTimeout(timer); try { cb(data); } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } }
       var s = document.createElement("script");
+      s.id=n;
       s.src = CENTRAL_URL + "?beheer=" + encodeURIComponent(id) + "&code=" + encodeURIComponent(code) + "&callback=" + n;
-      s.onerror = function () { cb(null); };
+      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); loadStatus.textContent="⚠️ Kon gegevens niet laden."; cb(null); }
       document.head.appendChild(s);
     }
 
@@ -169,15 +173,32 @@
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
+      status.textContent=""; status.removeAttribute("data-state");
       var naam = document.getElementById("naam").value.trim();
-      if (!naam) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een bedrijfsnaam in."; return; }
+      if (!naam || naam.length < 2) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een bedrijfsnaam in (min. 2 tekens)."; return; }
+      var emailVal = document.getElementById("email").value.trim();
+      if (emailVal && !validEmail(emailVal)) { status.setAttribute("data-state","err"); status.textContent="⚠️ Vul een geldig e-mailadres in (of laat leeg)."; return; }
+      var betaalVal = document.getElementById("betaalLink").value.trim();
+      if (betaalVal) { try{ var u=new URL(betaalVal); if(u.protocol!=="http:"&&u.protocol!=="https:") throw 0; }catch(err){ status.setAttribute("data-state","err"); status.textContent="⚠️ Betaallink moet beginnen met https://"; return; } }
+      var aanbVal = Number(document.getElementById("aanbetaling").value);
+      if (isNaN(aanbVal) || aanbVal < 0 || aanbVal > 500) { status.setAttribute("data-state","err"); status.textContent="⚠️ Aanbetaling moet 0–500 zijn."; return; }
+      var ov = document.getElementById("openVan").value || "09:00", ot=document.getElementById("openTot").value || "18:00";
+      if (ov >= ot) { status.setAttribute("data-state","err"); status.textContent="⚠️ Openingstijden kloppen niet (van moet voor tot zijn)."; return; }
       var diensten = [];
+      var dienstFout=false;
       dienstenBox.querySelectorAll(".svc").forEach(function (row) {
         var n = row.querySelector(".svc-naam").value.trim();
-        var p = row.querySelector(".svc-prijs").value;
-        var d = row.querySelector(".svc-duur").value;
-        if (n && p) diensten.push({ naam: n, prijs: Number(p) || 0, duur: Number(d) || 60 });
+        var p = row.querySelector(".svc-prijs").value.trim();
+        var d = row.querySelector(".svc-duur").value.trim();
+        if (!n && !p && !d) return;
+        if (!n || !p) { dienstFout=true; return; }
+        var pr=Number(p), du=Number(d)||60;
+        if (isNaN(pr)||pr<0||pr>5000) dienstFout=true;
+        if (isNaN(du)||du<5||du>480) dienstFout=true;
+        if(!dienstFout) diensten.push({ naam: n, prijs: pr, duur: du });
       });
+      if (dienstFout) { status.setAttribute("data-state","err"); status.textContent="⚠️ Vul elke dienst volledig in (naam + prijs)."; return; }
+      if (diensten.length===0) { status.setAttribute("data-state","err"); status.textContent="⚠️ Voeg minimaal één dienst toe."; return; }
       var gesloten = Array.prototype.map.call(document.querySelectorAll("#dagen input:checked"), function (x) { return x.value; }).join(",");
       var data = {
         type: "update", id: id, code: code,

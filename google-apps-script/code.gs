@@ -24,34 +24,50 @@ const BOEK_KOLOMMEN = ['Tijdstip', 'Naam', 'Telefoon', 'Dienst', 'Prijs', 'Datum
 
 // --- lezen (boekingspagina haalt hier 1 bedrijf op) ---
 function doGet(e) {
-  const callback = e.parameter.callback || '';
-  let data;
-  if (e.parameter.leads) {
-    const arr = getOsmLeads(30);
-    const obj = { ok: true, leads: arr };
-    if (callback) return ContentService.createTextOutput(callback + '(' + JSON.stringify(obj) + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
-    return json(obj);
-  }
-  if (e.parameter.beheer) {
-    data = getBusiness(e.parameter.beheer);
-    if (data && data.gevonden && String(data.beheerCode) !== String(e.parameter.code || '')) {
-      data = { gevonden: false, error: 'code' };
-    } else if (data && data.gevonden) {
-      delete data.row;
-      data.bezet = getBookedSlots(data);
+  try {
+    const p = (e && e.parameter) ? e.parameter : {};
+    const callback = p.callback || '';
+    if (p.leads) {
+      const arr = getOsmLeads(30);
+      const obj = { ok: true, leads: arr };
+      const payloadLeads = JSON.stringify(obj);
+      if (callback) return ContentService.createTextOutput(callback + '(' + payloadLeads + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+      return json(obj);
     }
-  } else {
-    data = getBusiness(e.parameter.bedrijf || '');
-    if (data && data.gevonden) {
-      data.bezet = getBookedSlots(data);
-      delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; delete data.gratisTot; delete data.beheerCode;
+    let data;
+    if (p.beheer) {
+      data = getBusiness(String(p.beheer || '').trim());
+      if (data && data.gevonden && String(data.beheerCode) !== String(p.code || '')) {
+        data = { gevonden: false, error: 'code' };
+      } else if (data && data.gevonden) {
+        delete data.row;
+        data.bezet = getBookedSlots(data);
+      }
+    } else {
+      const bid = String(p.bedrijf || '').trim();
+      if (!bid) {
+        data = { gevonden: false, error: 'geen_id' };
+      } else {
+        data = getBusiness(bid);
+        if (data && data.gevonden) {
+          data.bezet = getBookedSlots(data);
+          delete data.email; delete data.sheetId; delete data.calendarId; delete data.row; delete data.gratisTot; delete data.beheerCode;
+        }
+      }
     }
+    const payload = JSON.stringify(data || { gevonden: false });
+    if (callback) {
+      return ContentService.createTextOutput(callback + '(' + payload + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+    return ContentService.createTextOutput(payload).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err);
+    Logger.log('doGet fout: ' + msg);
+    const out = JSON.stringify({ gevonden: false, error: msg });
+    const cb = (e && e.parameter && e.parameter.callback) ? e.parameter.callback : '';
+    if (cb) return ContentService.createTextOutput(cb + '(' + out + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+    return ContentService.createTextOutput(out).setMimeType(ContentService.MimeType.JSON);
   }
-  const json = JSON.stringify(data);
-  if (callback) {
-    return ContentService.createTextOutput(callback + '(' + json + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }
 
 // --- schrijven (lead / aanmelding / boeking) ---

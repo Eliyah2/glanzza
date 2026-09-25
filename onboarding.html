@@ -6,6 +6,7 @@
   <title>Glanzza — Aanmelden als bedrijf</title>
   <meta name="description" content="Meld je bedrijf aan en maak in 5 minuten je eigen boekingspagina met Wero-aanbetaling." />
   <meta name="theme-color" content="#070a0e" />
+  <link rel="canonical" href="https://glanzza.vercel.app/onboarding.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <style>
@@ -129,7 +130,7 @@
   </main>
 
   <footer class="footer" style="padding:28px 0">
-    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div>
+    <div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center;flex-wrap:wrap;gap:10px"><span>© 2026 Glanzza</span><span><a href="privacy.html" style="color:var(--mute)">Privacy</a> · <a href="voorwaarden.html" style="color:var(--mute)">Voorwaarden</a></span></div></div>
   </footer>
 
   <script>
@@ -139,12 +140,15 @@
     var CENTRAL_URL = "https://script.google.com/macros/s/AKfycbzW0bmYcRv0S0QKqAh2YUmC4sZoDw9TRdYZxSqW8Hba-WgyKugyaTr_i95wjZYbsXMenQ/exec";
     // ====================================================
 
-    // === Eerste maand gratis? (feedback-fase) — zet op false om direct betaling (IBAN) te vragen ===
+    // === Eerste maand gratis? (feedback-fase) — zet op false om direct betaling te vragen ===
     var EERSTE_MAAND_GRATIS = true;
-    // === Jouw betaalgegevens (IBAN) — hiermee betalen bedrijven hun eerste maand ===
-    var BETAAL_IBAN = "NL20RBRB0200418939";   // jouw rekeningnummer
-    var BETAAL_NAAM = "Eliyah Impelmans";      // ten name van
-    var BETAAL_BEDRAG = "€15";                 // het bedrag
+    // === Jouw betaalgegevens — hiermee betalen bedrijven hun abonnement (€15 founders, daarna €25) ===
+    // IBAN (handmatig) — werkt altijd. Vul hier je ABN AMRO IBAN al in (staat goed).
+    var BETAAL_IBAN = "NL20RBRB0200418939";
+    var BETAAL_NAAM = "Eliyah Impelmans";
+    var BETAAL_BEDRAG = "€15";
+    // Optioneel: Tikkie/Mollie-betaallink voor abonnement (plak hier je Tikkie-link zodra je 'm hebt — dan krijgen klanten meteen een betaalknop)
+    var BETAAL_TIKKIE = "";
     // =============================================================================
 
     var naam = document.getElementById("naam");
@@ -187,34 +191,61 @@
       if (input) input.setAttribute("aria-invalid", msg ? "true" : "false");
     }
 
+    function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+    function validUrl(v){
+      if(!v) return true;
+      try{ var u=new URL(v); return u.protocol==="http:"||u.protocol==="https:"; }catch(e){ return false; }
+    }
     function checkSlug(id, cb) {
       if (!CENTRAL_URL) { cb(false); return; }
-      var n = "__glanzza_chk_" + Date.now();
-      window[n] = function (data) { try { cb(!!(data && data.gevonden)); } finally { delete window[n]; } };
+      var n = "__glanzza_chk_" + Date.now() + "_" + Math.random().toString(36).slice(2,5);
+      var done=false;
+      var timer=setTimeout(function(){ if(done) return; done=true; try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); cb(false); }, 8000);
+      window[n] = function (data) { if(done) return; done=true; clearTimeout(timer); try { cb(!!(data && data.gevonden)); } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } }
       var s = document.createElement("script");
+      s.id=n;
       s.src = CENTRAL_URL + "?bedrijf=" + encodeURIComponent(id) + "&callback=" + n;
-      s.onerror = function () { cb(false); };
+      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); try{ delete window[n]; }catch(e){} cb(false); };
       document.head.appendChild(s);
     }
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       setErr("naam"); setErr("id");
+      status.textContent=""; status.removeAttribute("data-state");
       var id = slugify(linknaam.value.trim());
       var ok = true;
-      if (!naam.value.trim()) { setErr("naam", "Vul je bedrijfsnaam in."); ok = false; }
-      if (!id) { setErr("id", "Vul een geldige linknaam in (alleen letters en cijfers)."); ok = false; }
+      var naamVal = naam.value.trim();
+      if (!naamVal || naamVal.length < 2) { setErr("naam", naamVal? "Minimaal 2 tekens." : "Vul je bedrijfsnaam in."); ok = false; }
+      if (!id || id.length < 3) { setErr("id", "Vul een linknaam in (min. 3 tekens, alleen letters/cijfers)."); ok = false; }
+      else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) { setErr("id", "Alleen kleine letters, cijfers en streepjes."); ok = false; }
 
-      var aanb = Number(document.getElementById("aanbetaling").value);
-      if (isNaN(aanb) || aanb < 0) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een geldige aanbetaling in (0 of hoger)."; ok = false; }
+      var aanbRaw = document.getElementById("aanbetaling").value;
+      var aanb = Number(aanbRaw);
+      if (aanbRaw==="" || isNaN(aanb) || aanb < 0 || aanb > 500) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een geldige aanbetaling in (0–500)."; ok = false; }
+
+      var emailVal = (document.getElementById("email") ? document.getElementById("email").value.trim() : "");
+      if (emailVal && !validEmail(emailVal)) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul een geldig e-mailadres in (of laat leeg)."; ok = false; }
+      var betaalVal = document.getElementById("betaalLink").value.trim();
+      if (betaalVal && !validUrl(betaalVal)) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Betaallink moet beginnen met https://"; ok = false; }
+      var ov = (document.getElementById("openVan") ? document.getElementById("openVan").value : "09:00") || "09:00";
+      var ot = (document.getElementById("openTot") ? document.getElementById("openTot").value : "18:00") || "18:00";
+      if (ov >= ot) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Openingstijden kloppen niet (van moet vóór tot zijn)."; ok = false; }
 
       var diensten = [];
+      var dienstFout=false;
       dienstenBox.querySelectorAll(".svc").forEach(function (row) {
         var n = row.querySelector(".svc-naam").value.trim();
-        var p = row.querySelector(".svc-prijs").value;
-        var d = row.querySelector(".svc-duur").value;
-        if (n && p) diensten.push({ naam: n, prijs: Number(p) || 0, duur: Number(d) || 60 });
+        var p = row.querySelector(".svc-prijs").value.trim();
+        var d = row.querySelector(".svc-duur").value.trim();
+        if (!n && !p && !d) return;
+        if (!n || !p) { dienstFout=true; return; }
+        var pr = Number(p), du = Number(d) || 60;
+        if (isNaN(pr) || pr < 0 || pr > 5000) dienstFout=true;
+        if (isNaN(du) || du < 5 || du > 480) dienstFout=true;
+        if (n && p && !dienstFout) diensten.push({ naam: n, prijs: pr, duur: du });
       });
+      if (dienstFout) { status.setAttribute("data-state", "err"); status.textContent = "⚠️ Vul elke dienst volledig in (naam + prijs) of laat lege rijen leeg."; ok = false; }
       if (diensten.length === 0) {
         status.setAttribute("data-state", "err");
         status.textContent = "⚠️ Voeg minimaal één dienst toe (met naam en prijs).";
@@ -228,15 +259,23 @@
         return;
       }
 
+      var btn0=document.getElementById("submit");
+      btn0.setAttribute("aria-disabled","true");
+      status.setAttribute("data-state","busy");
+      status.textContent="Link controleren…";
       checkSlug(id, function (taken) {
+        btn0.removeAttribute("aria-disabled");
+        status.textContent="";
         if (taken) {
           setErr("id", "Deze linknaam is al in gebruik. Kies een andere.");
+          status.setAttribute("data-state","err");
+          status.textContent="⚠️ Linknaam bezet.";
           return;
         }
         var dagenEls = document.querySelectorAll("#dagen input:checked");
         var gesloten = Array.prototype.map.call(dagenEls, function (x) { return x.value; }).join(",");
         var code = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 8);
-        doSubmit({ id: id, naam: naam.value.trim(), aanbetaling: aanb, betaalLink: document.getElementById("betaalLink").value.trim(), email: (document.getElementById("email") ? document.getElementById("email").value.trim() : ""), openVan: (document.getElementById("openVan") ? document.getElementById("openVan").value : "09:00"), openTot: (document.getElementById("openTot") ? document.getElementById("openTot").value : "18:00"), gesloten: gesloten, code: code, diensten: diensten });
+        doSubmit({ id: id, naam: naamVal, aanbetaling: aanb, betaalLink: betaalVal, email: emailVal, openVan: ov, openTot: ot, gesloten: gesloten, code: code, diensten: diensten });
       });
     });
 
@@ -258,21 +297,36 @@
         document.getElementById("done-link").value = link;
         if (EERSTE_MAAND_GRATIS) {
           var ib = document.getElementById("iban-box"); if (ib) ib.style.display = "none";
-          document.getElementById("done-msg").innerHTML = "Je eerste maand is <b>gratis</b>! 🎉 We activeren je pagina zo snel mogelijk — daarna €15/maand.";
+          document.getElementById("done-msg").innerHTML = "Je eerste maand is <b>gratis</b>! 🎉 We activeren je pagina binnen 24 uur — daarna "+(BETAAL_BEDRAG||"€15")+"/maand. Je krijgt een mail zodra je live staat.";
         } else {
-          document.getElementById("done-msg").textContent = "Maak je eerste maand over om je pagina te activeren.";
-          document.getElementById("iban-bedrag").textContent = BETAAL_BEDRAG || "€15";
-          document.getElementById("iban-rekening").textContent = BETAAL_IBAN || "vraag ons om de gegevens";
-          document.getElementById("iban-naam").textContent = BETAAL_NAAM || "Glanzza";
-          document.getElementById("iban-oms").textContent = "Glanzza " + data.naam;
+          if (BETAAL_TIKKIE) {
+            document.getElementById("done-msg").innerHTML = 'Betaal je eerste maand via de knop hieronder om direct geactiveerd te worden. Daarna <b>'+(BETAAL_BEDRAG||"€15")+'/maand</b>.' +
+              '<br><a class="btn btn--primary" style="margin-top:12px" href="'+BETAAL_TIKKIE+'" target="_blank" rel="noopener">Betaal '+(BETAAL_BEDRAG||"€15")+' via Tikkie →</a>';
+            var ib2=document.getElementById("iban-box"); if(ib2) ib2.style.display="none";
+          } else {
+            document.getElementById("done-msg").innerHTML = "Maak <b>"+(BETAAL_BEDRAG||"€15")+"</b> over om je pagina te activeren (binnen 24 uur live).";
+            document.getElementById("iban-bedrag").textContent = BETAAL_BEDRAG || "€15";
+            document.getElementById("iban-rekening").textContent = BETAAL_IBAN || "vraag ons om de gegevens";
+            document.getElementById("iban-naam").textContent = BETAAL_NAAM || "Glanzza";
+            document.getElementById("iban-oms").textContent = "Glanzza " + data.naam;
+          }
         }
         var bl = document.getElementById("beheer-link");
-        if (bl) bl.value = location.origin + location.pathname.replace(/onboarding\.html.*$/, "beheer.html?id=" + encodeURIComponent(data.id) + "&code=" + encodeURIComponent(data.code || ""));
+        if (bl) {
+          bl.value = location.origin + location.pathname.replace(/onboarding\.html.*$/, "beheer.html?id=" + encodeURIComponent(data.id) + "&code=" + encodeURIComponent(data.code || ""));
+          // Kopieer-knop voor beheer-link toevoegen
+          if(!document.getElementById("copy-beheer")){
+            var cp=document.createElement("button"); cp.type="button"; cp.className="btn btn--ghost"; cp.id="copy-beheer"; cp.textContent="Kopieer"; cp.style.padding="10px 16px";
+            cp.addEventListener("click", function(){ bl.select(); try{ navigator.clipboard.writeText(bl.value);}catch(e){ document.execCommand("copy"); } this.textContent="Gekopieerd ✓"; });
+            bl.parentElement.appendChild(cp);
+          }
+        }
         done.classList.add("show");
+        done.scrollIntoView({behavior:"smooth", block:"start"});
         form.style.display = "none";
       } catch (err) {
         status.setAttribute("data-state", "err");
-        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw.";
+        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw of mail naar eliyahimpelmans9@gmail.com";
       } finally {
         btn.removeAttribute("aria-disabled");
       }

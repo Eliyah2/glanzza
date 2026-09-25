@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /o-k7m2x9q.html
+Disallow: /beheer.html
+Sitemap: https://glanzza.vercel.app/sitemap.xml
