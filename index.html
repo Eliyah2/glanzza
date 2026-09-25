@@ -12,8 +12,16 @@
   <meta property="og:description" content="Online boeken, automatische herinneringen en Wero-aanbetaling voor lokale afspraakbedrijven." />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="nl_NL" />
+  <meta property="og:image" content="https://glanzza.vercel.app/assets/og.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Glanzza — stop no-shows met Wero-aanbetalingen" />
+  <meta property="og:site_name" content="Glanzza" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Glanzza — stop no-shows met Wero-aanbetalingen" />
+  <meta name="twitter:description" content="Online boeken + Wero-aanbetaling tegen no-shows. Gemaakt voor lokale afspraakbedrijven." />
+  <meta name="twitter:image" content="https://glanzza.vercel.app/assets/og.svg" />
+  <link rel="preconnect" href="https://script.google.com" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="assets/css/style.css" />
   <script type="application/ld+json">
@@ -23,16 +31,37 @@
     "name": "Glanzza",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web",
-    "description": "Boekings- en no-show-tool voor lokale afspraakbedrijven met Wero-aanbetaling.",
+    "description": "Boekings- en no-show-tool voor lokale afspraakbedrijven met Wero-aanbetaling. Online boeken, herinneringen en aanbetaling in één.",
+    "url": "https://glanzza.vercel.app/",
+    "inLanguage": "nl-NL",
+    "publisher": { "@type": "Organization", "name": "Glanzza", "url": "https://glanzza.vercel.app/" },
     "offers": [
-      { "@type": "Offer", "name": "Start", "price": "25", "priceCurrency": "EUR" },
-      { "@type": "Offer", "name": "Pro", "price": "49", "priceCurrency": "EUR" }
+      { "@type": "Offer", "name": "Start", "price": "25", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+      { "@type": "Offer", "name": "Pro", "price": "49", "priceCurrency": "EUR", "availability": "https://schema.org/InStock" },
+      { "@type": "Offer", "name": "Founders", "price": "15", "priceCurrency": "EUR", "availability": "https://schema.org/LimitedAvailability", "description": "Eerste 10 plekken levenslang €15/maand" }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Is Glanzza al live?", "acceptedAnswer": { "@type": "Answer", "text": "Ja. Je maakt in 10 minuten je agenda aan, deelt je boekingslink en ontvangt aanbetalingen." } },
+      { "@type": "Question", "name": "Wat kost het?", "acceptedAnswer": { "@type": "Answer", "text": "Start €25/maand, Pro €49/maand. Eerste 10 founders betalen €15/maand levenslang. Maandelijks opzegbaar." } },
+      { "@type": "Question", "name": "Hoe werkt de Wero-aanbetaling?", "acceptedAnswer": { "@type": "Answer", "text": "Klant betaalt een kleine aanbetaling bij het boeken. Wie betaalt komt opdagen — no-shows dalen van 12-18% naar 5-7%. Wordt verrekend met de behandeling." } },
+      { "@type": "Question", "name": "Voor welke bedrijven is het geschikt?", "acceptedAnswer": { "@type": "Answer", "text": "Elk afspraakbedrijf: detailers, kappers, trimsalons, nagelstudio's, schoonheidssalons en meer." } }
     ]
   }
   </script>
 </head>
 <body>
   <a class="skip" href="#main">Naar de inhoud</a>
+  <div class="topbar" id="topbar" role="status" aria-live="polite">
+    <span>⚡ Nog <b>7 van 10</b> foundersplekken — <b>€15/maand levenslang</b> + gratis onboarding</span>
+    <a href="#founders">Claim je plek →</a>
+    <button type="button" aria-label="Sluiten" id="topbar-close">×</button>
+  </div>
 
   <header class="nav">
     <div class="container nav__inner">
@@ -64,7 +93,7 @@
           <p class="lead lead--goal"><b>Het doel:</b> no-shows verdwijnen, je agenda vult zichzelf met aanbetáálde afspraken, en al je boekingen staan op één plek — zonder dure, Engelstalige software.</p>
           <div class="hero__actions">
             <a class="btn btn--primary btn--lg" href="onboarding.html">Start gratis</a>
-            <a class="btn btn--ghost btn--lg" href="boeken.html" title="Vul eerst een bedrijf in via Aanmelden">Bekijk een boeking →</a>
+            <a class="btn btn--ghost btn--lg" href="boeken.html">Bekijk live demo →</a>
           </div>
           <ul class="hero__proof">
             <li>Geen creditcard nodig</li>
@@ -184,7 +213,7 @@
         <div class="steps">
           <div class="step reveal"><div class="step__n">1</div><h3>Maak je agenda</h3><p>Zet je diensten, prijzen en werktijden klaar.</p></div>
           <div class="step reveal"><div class="step__n">2</div><h3>Deel je boekingslink</h3><p>Zet de link in je Instagram-bio, op je site of stuur hem via WhatsApp.</p></div>
-          <div class="step reveal"><div class="step__n">3</div><h3>Ontvang aanbetalingen</h3><p>Klanten boeken en betalen. Jij houdt overzicht en agenda.</p></div>
+          <div class="step reveal"><div class="step__n">3</div><h3>Ontvang aanbetalingen</h3><p>Klanten boeken en betalen. Jij houdt overzicht en agenda. Elke boeking staat in je Sheet + Agenda.</p></div>
         </div>
       </div>
     </section>
@@ -306,12 +335,90 @@
       </div>
     </section>
 
+    <!-- ROI CALCULATOR -->
+    <section class="section" id="roi" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+      <div class="container">
+        <div class="roi" id="roi-box">
+          <div>
+            <span class="eyebrow">Rekenen</span>
+            <h2>Wat kosten no-shows jou?</h2>
+            <p class="section__lead" style="margin-top:8px">Schuif en zie direct wat je per maand laat liggen — en wat Glanzza je oplevert.</p>
+            <div class="roi__field">
+              <label for="roi-afspraken">Afspraken per week <b id="roi-afspraken-v">20</b></label>
+              <input type="range" id="roi-afspraken" min="4" max="60" step="2" value="20" />
+            </div>
+            <div class="roi__field">
+              <label for="roi-gem">Gemiddelde prijs <b id="roi-gem-v">€85</b></label>
+              <input type="range" id="roi-gem" min="25" max="300" step="5" value="85" />
+            </div>
+            <div class="roi__field">
+              <label for="roi-noshow">No-show nu <b id="roi-noshow-v">15%</b></label>
+              <input type="range" id="roi-noshow" min="5" max="30" step="1" value="15" />
+            </div>
+            <p class="roi__note">Met Wero-aanbetaling: <b>±6%</b> no-show · besparing = verschil × afspraken × prijs</p>
+          </div>
+          <div class="roi__result">
+            <div class="roi__card roi__card--loss">
+              <span>Je verliest nu</span>
+              <b id="roi-loss">€ 2.040</b>
+              <small>per maand aan no-shows</small>
+            </div>
+            <div class="roi__card roi__card--save">
+              <span>Met Glanzza bespaar je</span>
+              <b id="roi-save">€ 1.224</b>
+              <small>per maand — dat is <b id="roi-save-p" style="color:var(--brand)">60%</b> minder no-show-kosten</small>
+            </div>
+            <p class="roi__cta-note">Kost je <b>€15</b> als founder. Reken zelf uit.</p>
+            <a class="btn btn--primary btn--block" href="onboarding.html">Start gratis →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NICHES -->
+    <section class="section" id="niches" style="background:var(--bg-1);border-top:1px solid var(--border)">
+      <div class="container">
+        <div class="section__head center">
+          <span class="eyebrow">Voor wie</span>
+          <h2>Gebouwd voor jouw vak</h2>
+          <p class="section__lead">Elk afspraakbedrijf heeft dezelfde pijn: no-shows. Glanzza past zich aan jouw diensten, tijden en aanbetaling.</p>
+        </div>
+        <div class="cards">
+          <div class="card reveal"><div class="card__icon">✂️</div><h3>Kappers &amp; barbers</h3><p>Knippen, kleuren, baard — strakke slots, duidelijke prijzen, aanbetaling per behandeling.</p></div>
+          <div class="card reveal"><div class="card__icon">🐾</div><h3>Trimsalons</h3><p>Van kleine beurt tot grote trim. Voorkom lege plekken in een volle trim-agenda.</p></div>
+          <div class="card reveal"><div class="card__icon">✨</div><h3>Detailers &amp; carwash</h3><p>Lange slots (coating) + korte (interieur). Klant kiest zijn voertuig, jij ziet het in je agenda.</p></div>
+          <div class="card reveal"><div class="card__icon">💅</div><h3>Nagelstudio &amp; schoonheid</h3><p>Manicure, pedicure, gezichtsbehandeling — herhaalafspraken zonder DM-chaos.</p></div>
+          <div class="card reveal"><div class="card__icon">💪</div><h3>PT &amp; coaching</h3><p>Sessies per uur, automatisch bezet, herinneringen die opkomst verhogen.</p></div>
+          <div class="card reveal"><div class="card__icon">🖋️</div><h3>Tattoo &amp; massage</h3><p>Lange afspraken waar no-shows écht pijn doen — met aanbetaling als drempel.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST -->
+    <section class="section" id="trust">
+      <div class="container">
+        <div class="section__head center">
+          <span class="eyebrow">Waarom vertrouwen?</span>
+          <h2>Geen poespas. Wel resultaat.</h2>
+        </div>
+        <div class="cards">
+          <div class="card reveal"><h3>🇳🇱 Nederlands + Wero</h3><p>Geen Engelstalige tool. Geen Stripe-gedoe. Aanbetalingen via jouw eigen Wero/Tikkie-link — jij int zelf.</p></div>
+          <div class="card reveal"><h3>📊 Jij houdt overzicht</h3><p>Elke boeking in je eigen Google Sheet + Agenda (met je gedeeld). Geen vendor lock-in.</p></div>
+          <div class="card reveal"><h3>🔒 Privacy by design</h3><p>Alleen wat nodig is. Beheer met persoonlijke code. Publieke pagina toont geen e-mail of Sheet-ID.</p></div>
+        </div>
+        <div style="margin-top:22px; text-align:center; color:var(--dim); font-size:.9rem; display:flex; gap:12px; justify-content:center; flex-wrap:wrap">
+          <span class="chip">✓ 14 dagen gratis</span><span class="chip">✓ Maandelijks opzegbaar</span><span class="chip">✓ Geen setup-kosten</span><span class="chip">✓ In 10 min live</span>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="cta">
       <div class="container">
         <h2>Klaar om no-shows te stoppen?</h2>
-        <p>Start 14 dagen gratis. Geen creditcard nodig.</p>
+        <p>Start 14 dagen gratis. Geen creditcard nodig. Je hebt je pagina in 10 minuten.</p>
         <a class="btn btn--primary btn--lg" href="onboarding.html">Start nu →</a>
+        <p style="margin-top:12px; color:var(--mute); font-size:.85rem">Of <a href="boeken.html" style="color:var(--brand);text-decoration:underline">bekijk de live demo</a> — test zelf hoe het boeken voelt.</p>
       </div>
     </section>
   </main>
@@ -329,7 +436,15 @@
             <li><a href="#functies">Functies</a></li>
             <li><a href="#hoe">Hoe het werkt</a></li>
             <li><a href="#prijzen">Prijzen</a></li>
-            <li><a href="boeken.html">Voorbeeld boeking</a></li>
+            <li><a href="boeken.html">Live demo</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Niches</h4>
+          <ul>
+            <li><a href="#niches">Kappers</a></li>
+            <li><a href="#niches">Trimsalons</a></li>
+            <li><a href="#niches">Detailers</a></li>
           </ul>
         </div>
         <div>
@@ -349,6 +464,51 @@
     </div>
   </footer>
 
+  <div class="mbar" id="mbar" aria-hidden="true">
+    <span class="mbar__txt"><b>€15</b> founders · nog <b>7</b> plekken</span>
+    <a class="btn btn--primary" href="onboarding.html" style="padding:10px 18px;font-size:.92rem">Start gratis →</a>
+  </div>
+
   <script src="assets/js/main.js"></script>
+  <script>
+  (function(){
+    var af=document.getElementById('roi-afspraken'),gm=document.getElementById('roi-gem'),ns=document.getElementById('roi-noshow');
+    if(!af||!gm||!ns) return;
+    function fmt(n){ return '€ '+Math.round(n).toLocaleString('nl-NL'); }
+    function upd(){
+      var a=Number(af.value),g=Number(gm.value),p=Number(ns.value)/100;
+      document.getElementById('roi-afspraken-v').textContent=a;
+      document.getElementById('roi-gem-v').textContent='€'+g;
+      document.getElementById('roi-noshow-v').textContent=Math.round(p*100)+'%';
+      var perMaand=a*4.33;
+      var verlies=perMaand*p*g;
+      var na=0.06; // met aanbetaling
+      var p2=Math.max(0,p-na);
+      var bespaard=perMaand*p2*g;
+      document.getElementById('roi-loss').textContent=fmt(verlies);
+      document.getElementById('roi-save').textContent=fmt(bespaard);
+      var pct=verlies>0?Math.round(bespaard/verlies*100):0;
+      document.getElementById('roi-save-p').textContent=pct+'%';
+    }
+    [af,gm,ns].forEach(function(e){ e.addEventListener('input',upd); });
+    upd();
+    var tb=document.getElementById('topbar');
+    var cl=document.getElementById('topbar-close');
+    if(tb&&cl){
+      var k='glanzza_topbar_closed';
+      try{ if(localStorage.getItem(k)==='1') tb.style.display='none'; }catch(e){}
+      cl.addEventListener('click',function(){ tb.style.display='none'; try{ localStorage.setItem(k,'1'); }catch(e){} });
+    }
+    // mbar show on scroll
+    var mbar=document.getElementById('mbar');
+    if(mbar){
+      var shown=false;
+      window.addEventListener('scroll',function(){
+        if(shown) return;
+        if(window.scrollY>420){ mbar.classList.add('show'); mbar.setAttribute('aria-hidden','false'); shown=true; }
+      },{passive:true});
+    }
+  })();
+  </script>
 </body>
 </html>

@@ -72,6 +72,7 @@
         <div class="booking__layout" id="layout">
           <div class="booking__card" id="card">
             <h2>Afspraak aanvragen</h2>
+            <div id="demo-banner" style="display:none; margin-bottom:16px; padding:12px 14px; border-radius:10px; background:var(--brand-soft); border:1px dashed rgba(201,242,77,.45); color:var(--dim); font-size:.88rem; text-align:center">👀 <b style="color:var(--brand-3)">Demo-modus</b> — dit is hoe jouw pagina eruitziet. Test 'm gerust. <a href="onboarding.html" style="color:var(--brand);text-decoration:underline">Maak je eigen pagina →</a></div>
             <p class="loading" id="loading">Even laden…</p>
             <form id="booking-form" novalidate style="display:none">
               <div class="field">
@@ -82,16 +83,16 @@
                 <span class="field__err" data-for="dienst"></span>
               </div>
               <div class="row2">
-                <div class="field">
-                  <label for="naam">Naam</label>
-                  <input id="naam" name="naam" type="text" placeholder="Je naam" required />
-                  <span class="field__err" data-for="naam"></span>
-                </div>
-                <div class="field">
-                  <label for="telefoon">Telefoon</label>
-                  <input id="telefoon" name="telefoon" type="tel" placeholder="06 12345678" required />
-                  <span class="field__err" data-for="telefoon"></span>
-                </div>
+              <div class="field">
+                <label for="naam">Naam</label>
+                <input id="naam" name="naam" type="text" placeholder="Je naam" autocomplete="name" required />
+                <span class="field__err" data-for="naam"></span>
+              </div>
+              <div class="field">
+                <label for="telefoon">Telefoon</label>
+                <input id="telefoon" name="telefoon" type="tel" placeholder="06 12345678" autocomplete="tel" inputmode="tel" required />
+                <span class="field__err" data-for="telefoon"></span>
+              </div>
               </div>
               <div class="field">
                 <label for="datum">Voorkeursdatum</label>
@@ -107,7 +108,7 @@
               </div>
               <div class="field">
                 <label for="auto">Auto / voertuig (optioneel)</label>
-                <input id="auto" name="auto" type="text" placeholder="bijv. VW Golf 2020" />
+                <input id="auto" name="auto" type="text" placeholder="bijv. VW Golf 2020" autocomplete="off" />
               </div>
               <div class="field">
                 <label for="opmerkingen">Opmerkingen (optioneel)</label>
@@ -326,10 +327,26 @@
       document.head.appendChild(s);
     }
 
+    var DEMO_CFG = null;
+    function demoCfg(){
+      if (DEMO_CFG) return DEMO_CFG;
+      var tmr = new Date(); tmr.setDate(tmr.getDate()+1);
+      var mm = String(tmr.getMonth()+1).padStart(2,'0'), dd = String(tmr.getDate()).padStart(2,'0');
+      var d = tmr.getFullYear()+'-'+mm+'-'+dd;
+      DEMO_CFG = {
+        gevonden:true, demo:true, naam:"GlansDetailing Venlo — demo", aanbetaling:50, betaalLink:"", status:"actief",
+        openVan:"09:00", openTot:"18:00", gesloten:"0",
+        diensten:[{naam:"Exterieur detail",prijs:99,duur:90},{naam:"Interieur reiniging",prijs:79,duur:60},{naam:"Ceramic coating",prijs:399,duur:180}],
+        bezet:[{d:d,t:"10:00",m:90},{d:d,t:"14:30",m:60}]
+      };
+      return DEMO_CFG;
+    }
     loadConfig(function (data) {
       if (!data || !data.gevonden) {
         if (data && data.error === "geen_id") {
-          loading.innerHTML = "⚠️ Geen bedrijf geselecteerd.<br><span style='font-size:.88rem;color:var(--dim)'>Gebruik je persoonlijke boekingslink of ga naar <a href='onboarding.html' style='color:var(--brand)'>aanmelden</a>.</span>";
+          var demo = demoCfg();
+          var banner = document.getElementById("demo-banner"); if (banner) banner.style.display = "block";
+          render(demo); return;
         } else {
           loading.innerHTML = "⚠️ Dit bedrijf is niet gevonden. Controleer de link.<br><span style='font-size:.88rem;color:var(--dim)'>Klopt de linknaam in de URL? Vraag het bedrijf om de juiste link.</span>";
         }
@@ -407,26 +424,34 @@
       status.setAttribute("data-state", "busy");
       status.textContent = "Verzenden…";
       try {
-        await fetch(CENTRAL_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(data),
-        });
-        status.setAttribute("data-state", "ok");
-        var dep = Number(cfg.aanbetaling) || 0;
-        if (dep > 0 && cfg.betaalLink) {
-          status.textContent = "✅ Boeking ontvangen! Betaal nu je aanbetaling hieronder.";
-        } else if (dep > 0) {
-          status.textContent = "✅ Boeking ontvangen! Je hoort snel van ons over de aanbetaling.";
+        if (cfg && cfg.demo) {
+          await new Promise(function(r){ setTimeout(r, 500); });
+          status.setAttribute("data-state", "ok");
+          status.textContent = "✅ Demo-boeking ontvangen! (niet opgeslagen) — maak je eigen pagina via Aanmelden om echte boekingen te krijgen.";
+          try { bezet.push({ d: vals.datum, t: vals.tijd, m: Number(data.duur)||60 }); renderSlots(); } catch(e){}
+          form.reset(); document.getElementById("tijd").value = "";
+          pay.classList.add("show"); pay.scrollIntoView({behavior:"smooth", block:"center"});
         } else {
-          status.textContent = "✅ Boeking ontvangen! Je hoort snel van ons.";
+          await fetch(CENTRAL_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(data),
+          });
+          status.setAttribute("data-state", "ok");
+          var dep = Number(cfg.aanbetaling) || 0;
+          if (dep > 0 && cfg.betaalLink) {
+            status.textContent = "✅ Boeking ontvangen! Betaal nu je aanbetaling hieronder.";
+          } else if (dep > 0) {
+            status.textContent = "✅ Boeking ontvangen! Je hoort snel van ons over de aanbetaling.";
+          } else {
+            status.textContent = "✅ Boeking ontvangen! Je hoort snel van ons.";
+          }
+          try { bezet.push({ d: vals.datum, t: vals.tijd, m: Number(data.duur)||60 }); renderSlots(); } catch(e){}
+          form.reset();
+          document.getElementById("tijd").value = "";
+          if (Number(cfg.aanbetaling) > 0) { pay.classList.add("show"); pay.scrollIntoView({behavior:"smooth", block:"center"}); }
         }
-        // Optimistisch bezet bijwerken zodat de tijd direct grijs wordt
-        try { bezet.push({ d: vals.datum, t: vals.tijd, m: Number(data.duur)||60 }); renderSlots(); } catch(e){}
-        form.reset();
-        document.getElementById("tijd").value = "";
-        if (Number(cfg.aanbetaling) > 0) { pay.classList.add("show"); pay.scrollIntoView({behavior:"smooth", block:"center"}); }
       } catch (err) {
         status.setAttribute("data-state", "err");
         status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw of bel het bedrijf.";

@@ -313,3 +313,44 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.03em;line-height:1.06}
 .slot--bezet{opacity:.4;text-decoration:line-through;cursor:not-allowed}
 .dagen{display:flex;flex-wrap:wrap;gap:12px;margin-top:4px}
 .dagen label{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:.9rem;cursor:pointer}
+/* ---------- topbar urgency ---------- */
+.topbar{display:flex;align-items:center;justify-content:center;gap:10px 16px;padding:8px 40px 8px 16px;background:var(--brand);color:#141a02;font-size:.88rem;font-weight:600;position:sticky;top:0;z-index:102;flex-wrap:wrap;text-align:center;line-height:1.4}
+.topbar b{font-weight:800}
+.topbar a{color:#141a02;text-decoration:underline;text-underline-offset:2px;font-weight:800;white-space:nowrap}
+.topbar a:hover{opacity:.8}
+.topbar button{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#141a02;font-size:1.25rem;line-height:1;opacity:.7;transition:opacity .15s}
+.topbar button:hover{opacity:1;background:rgba(0,0,0,.08)}
+
+/* ---------- ROI calculator ---------- */
+.roi{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(24px,4vw,40px);align-items:start}
+.roi h2{margin-bottom:4px}
+.roi__field{margin-top:18px}
+.roi__field label{display:flex;justify-content:space-between;gap:12px;font-size:.88rem;color:var(--dim);margin-bottom:8px;font-weight:500}
+.roi__field label b{color:var(--text);font-weight:800}
+.roi__field input[type="range"]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:999px;background:var(--border-2);outline:none;accent-color:var(--brand)}
+.roi__field input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--brand);border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer}
+.roi__field input[type="range"]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--brand);border:2px solid var(--bg);cursor:pointer}
+.roi__note{margin-top:16px;color:var(--mute);font-size:.82rem;line-height:1.5}
+.roi__result{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;position:relative;overflow:hidden}
+.roi__result::before{content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,242,77,.12),transparent 70%);pointer-events:none}
+.roi__card{padding:16px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);margin-bottom:12px}
+.roi__card span{display:block;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.roi__card b{display:block;font-size:1.7rem;font-weight:800;letter-spacing:-.02em;line-height:1}
+.roi__card small{color:var(--dim);font-size:.82rem;margin-top:4px;display:block}
+.roi__card--save{border-color:rgba(201,242,77,.35);background:linear-gradient(135deg,rgba(201,242,77,.1),rgba(201,242,77,.02))}
+.roi__card--save b{color:var(--brand)}
+.roi__cta-note{text-align:center;color:var(--dim);font-size:.85rem;margin:14px 0 12px}
+@media (max-width:860px){ .roi{grid-template-columns:1fr} }
+
+/* ---------- mobile sticky bar ---------- */
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:99;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(11,16,22,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);transform:translateY(110%);transition:transform .28s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.mbar.show{transform:translateY(0);pointer-events:auto}
+.mbar__txt{font-size:.88rem;color:var(--dim)}
+.mbar__txt b{color:var(--brand)}
+@media (min-width:901px){ .mbar{display:none !important} }
+@media (max-width:900px){ body{padding-bottom:0} .mbar.show ~ footer{padding-bottom:64px} }
+
+/* footer 4 cols */
+.footer__grid{grid-template-columns:1.4fr 1fr 1fr 1fr}
+@media (max-width:900px){ .footer__grid{grid-template-columns:1fr 1fr} }
+@media (max-width:520px){ .footer__grid{grid-template-columns:1fr} }
