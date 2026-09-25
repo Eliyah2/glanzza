@@ -146,7 +146,7 @@
       var s = document.createElement("script");
       s.id=n;
       s.src = CENTRAL_URL + "?beheer=" + encodeURIComponent(id) + "&code=" + encodeURIComponent(code) + "&callback=" + n;
-      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); loadStatus.textContent="⚠️ Kon gegevens niet laden."; cb(null); }
+      s.onerror = function () { if(done) return; done=true; clearTimeout(timer); try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); loadStatus.textContent="⚠️ Kon gegevens niet laden."; cb(null); }
       document.head.appendChild(s);
     }
 
