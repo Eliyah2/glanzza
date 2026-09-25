@@ -57,6 +57,7 @@
               <div class="field">
                 <label for="linknaam">Linknaam (voor je link)</label>
                 <input id="linknaam" name="id" type="text" placeholder="glansdetailing-venlo" required />
+                <span class="field__hint" id="link-preview" style="font-size:.82rem;color:var(--mute);margin-top:4px;word-break:break-all">Jouw link: glanzza.vercel.app/boeken.html?bedrijf=<span style="color:var(--brand)">jouw-naam</span></span>
                 <span class="field__err" data-for="id"></span>
               </div>
               <div class="field">
@@ -159,10 +160,16 @@
       return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
     }
+    var linkPreview = document.getElementById("link-preview");
+    function updPreview(){
+      var s = slugify(linknaam.value.trim()) || "jouw-naam";
+      if(linkPreview) linkPreview.innerHTML = 'Jouw link: glanzza.vercel.app/boeken.html?bedrijf=<span style="color:var(--brand)">'+s+'</span>';
+    }
     naam.addEventListener("input", function () {
-      if (!linknaam.dataset.touched) linknaam.value = slugify(naam.value);
+      if (!linknaam.dataset.touched) { linknaam.value = slugify(naam.value); updPreview(); }
     });
-    linknaam.addEventListener("input", function () { linknaam.dataset.touched = "1"; });
+    linknaam.addEventListener("input", function () { linknaam.dataset.touched = "1"; updPreview(); });
+    updPreview();
 
     function serviceRow() {
       var el = document.createElement("div");

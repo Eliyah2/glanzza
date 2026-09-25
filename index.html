@@ -298,6 +298,7 @@
               <li>1 gebruiker</li>
               <li>Wero-aanbetaling</li>
               <li>E-mailherinneringen</li>
+              <li>14 dagen gratis · maandelijks opzegbaar</li>
             </ul>
             <a class="btn btn--ghost btn--block" href="onboarding.html">Start gratis</a>
           </div>
@@ -370,6 +371,7 @@
             </div>
             <p class="roi__cta-note">Kost je <b>€15</b> als founder. Reken zelf uit.</p>
             <a class="btn btn--primary btn--block" href="onboarding.html">Start gratis →</a>
+            <button type="button" class="btn btn--ghost btn--block" id="roi-share" style="margin-top:8px">Deel via WhatsApp</button>
           </div>
         </div>
       </div>
@@ -507,6 +509,16 @@
         if(shown) return;
         if(window.scrollY>420){ mbar.classList.add('show'); mbar.setAttribute('aria-hidden','false'); shown=true; }
       },{passive:true});
+    }
+    var share=document.getElementById('roi-share');
+    if(share){
+      share.addEventListener('click',function(){
+        var a=Number(af.value),g=Number(gm.value),p=Number(ns.value);
+        var perMaand=a*4.33; var bespaard=Math.round(perMaand*Math.max(0,p/100-0.06)*g);
+        var txt='Ik verlies nu ongeveer \u20AC'+Math.round(perMaand*p/100*g)+' per maand aan no-shows. Met Glanzza bespaar ik \u20AC'+bespaard+' per maand — voor \u20AC15 als founder. Reken zelf: https://glanzza.vercel.app#roi';
+        var url='https://wa.me/?text='+encodeURIComponent(txt);
+        window.open(url,'_blank','noopener');
+      });
     }
   })();
   </script>
