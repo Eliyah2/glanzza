@@ -53,10 +53,16 @@
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
+      if (submitBtn.getAttribute("aria-disabled") === "true") return;
       var data = Object.fromEntries(new FormData(form).entries());
+      // trim
+      if (data.bedrijf) data.bedrijf = String(data.bedrijf).trim();
+      if (data.email) data.email = String(data.email).trim().toLowerCase();
+      if (data.bericht) data.bericht = String(data.bericht).trim().slice(0, 500);
       var ok = true;
       setErr("bedrijf"); setErr("email");
-      if (!data.bedrijf || !data.bedrijf.trim()) { setErr("bedrijf", "Vul je bedrijfsnaam in."); ok = false; }
+      if (!data.bedrijf || data.bedrijf.length < 2) { setErr("bedrijf", data.bedrijf ? "Minimaal 2 tekens." : "Vul je bedrijfsnaam in."); ok = false; }
+      else if (data.bedrijf.length > 80) { setErr("bedrijf", "Max. 80 tekens."); ok = false; }
       if (!data.email || !validEmail(data.email)) { setErr("email", "Vul een geldig e-mailadres in."); ok = false; }
       if (!ok) { status.textContent = ""; status.removeAttribute("data-state"); return; }
 
@@ -82,7 +88,7 @@
         form.reset();
       } catch (err) {
         status.setAttribute("data-state", "err");
-        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw.";
+        status.textContent = "⚠️ Netwerkfout. Probeer het opnieuw of mail naar eliyahimpelmans9@gmail.com";
       } finally {
         submitBtn.removeAttribute("aria-disabled");
       }

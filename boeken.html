@@ -253,7 +253,7 @@
         if (heroWrap) heroWrap.style.display = "";
       } else {
         document.getElementById("dep-hero").textContent = "—";
-        if (heroWrap) heroWrap.innerHTML = 'Boek direct bij <b id="bedrijf-naam">' + (c.naam || "Glanzza") + '</b> — zonder aanbetaling.';
+        if (heroWrap) heroWrap.innerHTML = 'Boek direct bij <b>' + (c.naam || "Glanzza") + '</b> — zonder aanbetaling.';
         document.getElementById("pay-bedrag").textContent = "€0";
       }
       var payLink = document.getElementById("pay-link");
