@@ -354,3 +354,60 @@ h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.03em;line-height:1.06}
 .footer__grid{grid-template-columns:1.4fr 1fr 1fr 1fr}
 @media (max-width:900px){ .footer__grid{grid-template-columns:1fr 1fr} }
 @media (max-width:520px){ .footer__grid{grid-template-columns:1fr} }
+
+/* ============================================================
+   HIGH-END POLISH — verbluffend snel + verbluffende feel
+   ============================================================ */
+/* view transitions (Chrome 111+) — zijdezachte nav */
+@supports (view-transition-name: none){
+  @view-transition{ navigation: auto; }
+  ::view-transition-old(root),::view-transition-new(root){ animation-duration:.28s; }
+  .hero__copy{ view-transition-name: hero-copy; }
+  .brand{ view-transition-name: brand; }
+}
+/* content-visibility: skip offscreen rendering — snellere first paint */
+.section, .stats, .cta{ content-visibility:auto; contain-intrinsic-size:auto 640px; contain:layout style paint; }
+.hero{ content-visibility:visible; contain:none; }
+/* contain + will-change voor smoothness */
+.card,.feature,.step,.plan,.roi__card,.side-card{ contain:layout style paint; }
+.phone,.nav,.topbar,.mbar{ will-change:transform; }
+/* scrollbar high-end (webkit + firefox) */
+*{ scrollbar-width:thin; scrollbar-color:rgba(201,242,77,.35) transparent; }
+::-webkit-scrollbar{ width:8px; height:8px; }
+::-webkit-scrollbar-thumb{ background:rgba(201,242,77,.35); border-radius:999px; }
+::-webkit-scrollbar-thumb:hover{ background:rgba(201,242,77,.5); }
+::-webkit-scrollbar-track{ background:transparent; }
+/* top progress — perceived speed */
+#gbar{ position:fixed; top:0; left:0; height:2px; width:0; z-index:200; background:var(--grad); transition:width .18s ease, opacity .3s ease; opacity:1; pointer-events:none; }
+#gbar.done{ opacity:0; transition:opacity .4s ease .2s; }
+/* high-end card lift */
+.card:hover,.feature:hover,.step:hover{ transform:translateY(-3px); border-color:rgba(255,255,255,.14); box-shadow:0 16px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.04); }
+.plan:hover{ transform:translateY(-4px); }
+.feature--cta:hover{ box-shadow:0 18px 44px rgba(201,242,77,.18); }
+/* button high-end shimmer on hover */
+.btn--primary{ position:relative; overflow:hidden; }
+.btn--primary::after{ content:""; position:absolute; inset:0; background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%); transform:translateX(-120%); transition:transform .6s ease; pointer-events:none; }
+.btn--primary:hover::after{ transform:translateX(120%); }
+/* hero subtle grain high-end (no extra request) */
+.hero::after{ opacity:.38; }
+/* focus: high-end ring */
+:focus-visible{ outline:none; box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--brand-3); border-radius:8px; }
+/* skeleton for boeken loading — perceived speed */
+.skel{ display:grid; gap:12px; }
+.skel__line{ height:14px; border-radius:8px; background:linear-gradient(90deg, var(--surface) 25%, rgba(255,255,255,.06) 37%, var(--surface) 63%); background-size:400% 100%; animation:skel 1.2s ease infinite; }
+.skel__line--w2{ width:62%; }
+.skel__line--w3{ width:84%; }
+@keyframes skel{ 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+/* reveal stagger — natuurlijker */
+.reveal{ transition-delay:0s; }
+.reveal:nth-child(2){ transition-delay:.06s; }
+.reveal:nth-child(3){ transition-delay:.12s; }
+.reveal:nth-child(4){ transition-delay:.08s; }
+.reveal:nth-child(5){ transition-delay:.14s; }
+.reveal:nth-child(6){ transition-delay:.1s; }
+/* reduced motion respects polish */
+@media (prefers-reduced-motion:reduce){
+  .card:hover,.feature:hover,.step:hover,.plan:hover{ transform:none; }
+  .btn--primary::after{ display:none; }
+  #gbar{ display:none; }
+}

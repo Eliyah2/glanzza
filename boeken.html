@@ -6,9 +6,18 @@
   <title>Boek een afspraak</title>
   <meta name="description" content="Boek een afspraak en betaal je aanbetaling veilig via Wero." />
   <meta name="theme-color" content="#070a0e" />
+  <meta name="color-scheme" content="dark" />
+  <meta http-equiv="x-dns-prefetch-control" content="on" />
   <link rel="canonical" href="https://glanzza.vercel.app/boeken.html" />
+  <link rel="preconnect" href="https://script.google.com" crossorigin />
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
+  <link rel="dns-prefetch" href="https://script.google.com" />
+  <link rel="preload" href="assets/css/style.css" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="assets/css/style.css" fetchpriority="high" />
+  <link rel="prefetch" href="onboarding.html" />
+  <link rel="prefetch" href="index.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <script type="speculationrules">{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/beheer.html"}}]},"eagerness":"moderate"}]}</script>
   <style>
     .booking-hero { position:relative; padding:clamp(40px,6vw,64px) 0 8px; text-align:center; }
     .booking-hero::before{content:"";position:absolute;top:-220px;left:50%;transform:translateX(-50%);width:min(760px,110vw);height:420px;border-radius:50%;background:radial-gradient(circle,rgba(201,242,77,.14),transparent 70%);pointer-events:none;z-index:-1}
@@ -50,6 +59,8 @@
   </style>
 </head>
 <body>
+  <div id="gbar" aria-hidden="true"></div>
+  <script>(function(){var b=document.getElementById('gbar');if(!b)return;var w=0,t;t=setInterval(function(){w=Math.min(88,w+Math.random()*14);b.style.width=w+'%';},120);function done(){clearInterval(t);b.style.width='100%';b.classList.add('done');setTimeout(function(){b.style.display='none';},500);}if(document.readyState==='complete')done();else window.addEventListener('load',done,{once:true});window.addEventListener('pageshow',function(e){if(e.persisted)done();});})();</script>
   <a class="skip" href="#main">Naar de inhoud</a>
 
   <header class="nav">
@@ -73,7 +84,7 @@
           <div class="booking__card" id="card">
             <h2>Afspraak aanvragen</h2>
             <div id="demo-banner" style="display:none; margin-bottom:16px; padding:12px 14px; border-radius:10px; background:var(--brand-soft); border:1px dashed rgba(201,242,77,.45); color:var(--dim); font-size:.88rem; text-align:center">👀 <b style="color:var(--brand-3)">Demo-modus</b> — dit is hoe jouw pagina eruitziet. Test 'm gerust. <a href="onboarding.html" style="color:var(--brand);text-decoration:underline">Maak je eigen pagina →</a></div>
-            <p class="loading" id="loading">Even laden…</p>
+            <div class="skel" id="loading" aria-busy="true" aria-label="Laden"><div class="skel__line" style="width:42%"></div><div class="skel__line skel__line--w3"></div><div class="skel__line skel__line--w2"></div><div class="skel__line" style="width:28%; height:36px; border-radius:10px; margin-top:6px"></div></div>
             <form id="booking-form" novalidate style="display:none">
               <div class="field">
                 <label for="dienst">Dienst</label>
