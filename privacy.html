@@ -4,25 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Privacy — Glanzza</title>
-  <meta name="robots" content="noindex" />
+  <meta name="description" content="Privacyverklaring van Glanzza: welke gegevens we verwerken, waarom, hoe lang, met wie we ze delen en welke rechten je hebt." />
   <link rel="canonical" href="https://glanzza.vercel.app/privacy.html" />
   <link rel="prefetch" href="index.html" />
   <meta name="theme-color" content="#070a0e" />
   <meta name="color-scheme" content="dark" />
-  <link rel="preload" href="assets/css/style.css" as="style" fetchpriority="high" />
-  <link rel="stylesheet" href="assets/css/style.css" fetchpriority="high" />
+  <link rel="preload" href="assets/css/style.css?v=20261027-2" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027-2" fetchpriority="high" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Glanzza" />
   <meta name="format-detection" content="telephone=no" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <style>
-    .legal{padding:clamp(32px,5vw,64px) 0 80px; max-width:760px; margin:0 auto}
-    .legal h1{font-size:clamp(1.6rem,3vw,2.2rem); margin-bottom:12px}
-    .legal h2{font-size:1.15rem; margin:28px 0 10px}
-    .legal p,.legal li{color:var(--dim); font-size:.95rem; line-height:1.7}
+    .legal{padding:clamp(32px,5vw,56px) 0 80px; max-width:820px; margin:0 auto}
+    .legal h1{font-size:clamp(1.7rem,3.4vw,2.3rem); margin-bottom:10px}
+    .legal__meta{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 26px}
+    .legal__toc{background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r); padding:18px 22px; margin-bottom:26px}
+    .legal__toc b{display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:var(--mute); margin-bottom:10px}
+    .legal__toc ol{margin:0 0 0 18px; display:grid; gap:7px}
+    .legal__toc a{color:var(--dim); font-size:.9rem}
+    .legal__toc a:hover{color:var(--brand)}
+    .legal__sec{scroll-margin-top:96px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:clamp(18px,2.6vw,26px); margin-bottom:14px}
+    .legal h2{font-size:1.12rem; margin:0 0 10px; display:flex; gap:10px; align-items:baseline}
+    .legal h2 i{font-style:normal; color:var(--brand); font-size:.95rem; font-weight:800}
+    .legal h3{font-size:.98rem; margin:16px 0 6px; color:var(--text)}
+    .legal p,.legal li{color:var(--dim); font-size:.94rem; line-height:1.7}
     .legal ul{margin:10px 0 0 20px; display:grid; gap:6px}
     .legal a{color:var(--brand); text-decoration:underline}
+    .legal table{width:100%; border-collapse:collapse; font-size:.88rem; margin-top:12px}
+    .legal th,.legal td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); color:var(--dim); vertical-align:top}
+    .legal th{color:var(--text); font-size:.82rem; text-transform:uppercase; letter-spacing:.06em}
+    .legal tr:last-child td{border-bottom:0}
+    .legal__wrap{overflow-x:auto}
+    .todo{color:var(--warn); border-bottom:1px dashed rgba(255,195,92,.6)}
+    @media (max-width:520px){ .legal table{font-size:.82rem} }
   </style>
 </head>
 <body>
@@ -37,37 +54,193 @@
   <main class="container">
     <article class="legal">
       <h1>Privacyverklaring</h1>
-      <p style="color:var(--mute);font-size:.85rem">Laatst bijgewerkt: 25 september 2026 — Glanzza (eenmanszaak Eliyah Impelmans, Nederland)</p>
-      <p>Glanzza is een boekingstool voor lokale afspraakbedrijven. We verwerken zo min mogelijk gegevens en alleen om je boekingspagina te laten werken.</p>
-      <h2>1. Welke gegevens verwerken we?</h2>
-      <ul>
-        <li><b>Bedrijven die zich aanmelden (onboarding):</b> bedrijfsnaam, linknaam, diensten/prijzen, openingstijden, e-mail, optionele Wero/Tikkie-link en aanbetaling.</li>
-        <li><b>Klanten die boeken (boeken.html):</b> naam, telefoon, gekozen dienst/datum/tijd, optioneel voertuig/opmerkingen.</li>
-        <li><b>Leads (founders-formulier):</b> bedrijfsnaam, e-mail, optioneel bericht.</li>
-      </ul>
-      <h2>2. Waarom en op welke grondslag?</h2>
-      <ul>
-        <li>Uitvoering van de overeenkomst: je boekingspagina tonen en boekingen registreren.</li>
-        <li>Gerechtvaardigd belang: contact bij aanmelding/boeking en het verbeteren van de dienst.</li>
-        <li>Toestemming waar je die geeft (bijv. founders-aanmelding).</li>
-      </ul>
-      <h2>3. Waar staan de gegevens?</h2>
-      <p>Centraal in een Google Sheet en — na activatie — per bedrijf in een eigen Google Sheet + Google Agenda (gedeeld met het e-mailadres dat je opgeeft). E-mails lopen via Gmail/Google Apps Script. Hosting van de site via Vercel (EU/US-edge). We delen gegevens niet met derden voor marketing.</p>
-      <h2>4. Bewaartermijn</h2>
-      <p>Boekingen en bedrijfsgegevens bewaren we zolang je klant bent, of tot je vraagt om verwijdering. Leads bewaren we max. 12 maanden tenzij je klant wordt.</p>
-      <h2>5. Jouw rechten</h2>
-      <p>Je hebt recht op inzage, correctie, verwijdering, beperking en bezwaar. Mail naar <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a> — we reageren binnen 14 dagen. Je kunt ook bezwaar maken bij de Autoriteit Persoonsgegevens.</p>
-      <h2>6. Beveiliging</h2>
-      <p>We gebruiken HTTPS, toegangsbeperking per bedrijf (beheer-code voor bewerken) en tonen op de publieke boekingspagina alleen wat nodig is (geen e-mail/sheet-ID). De beheer-pagina is afgeschermd met een persoonlijke code.</p>
-      <h2>7. Cookies</h2>
-      <p>Glanzza plaatst zelf geen tracking-cookies. We gebruiken alleen functionele lokale opslag (bijv. outreach-helper status). Vercel en Google kunnen technisch noodzakelijke cookies plaatsen; zie hun eigen verklaringen.</p>
-      <h2>8. Verwerkers & betalingen</h2>
-      <p>Aanbetalingen van klanten lopen direct via jouw eigen Wero/Tikkie-link — Glanzza verwerkt zelf geen betalingen en slaat geen betaalgegevens op. Voor abonnementen (founders €15/maand) betaal je via overschrijving (IBAN) of Tikkie; we bewaren alleen dat je betaald hebt (status in de Sheet).</p>
-      <h2>9. Contact</h2>
-      <p>Vragen? Mail <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a>.</p>
-      <p><a href="voorwaarden.html">Algemene voorwaarden →</a></p>
+      <div class="legal__meta">
+        <span class="chip">Versie 2.0</span>
+        <span class="chip">Bijgewerkt: 27 oktober 2026</span>
+        <span class="chip">Nederlands recht / AVG</span>
+      </div>
+      <p>Glanzza is een boekingspagina voor lokale afspraakbedrijven: klanten boeken online een afspraak, kunnen een aanbetaling doen via de betaallink van het bedrijf zelf, en krijgen een automatische herinnering per e-mail. In deze verklaring lees je precies welke gegevens daarvoor nodig zijn, waarom, hoe lang we ze bewaren en wat jouw rechten zijn.</p>
+      <p>We verwerken zo weinig gegevens als mogelijk. Glanzza plaatst geen tracking-cookies en verkoopt nooit gegevens.</p>
+
+      <nav class="legal__toc" aria-label="Inhoud">
+        <b>Inhoud</b>
+        <ol>
+          <li><a href="#wie">Wie is verantwoordelijk?</a></li>
+          <li><a href="#welke">Welke gegevens verwerken we?</a></li>
+          <li><a href="#waarom">Waarom, en op welke grondslag?</a></li>
+          <li><a href="#rollen">Twee rollen: bedrijf en Glanzza</a></li>
+          <li><a href="#waar">Waar staan de gegevens?</a></li>
+          <li><a href="#sub">Subprocessoren en doorgifte buiten de EER</a></li>
+          <li><a href="#hoe-lang">Bewaartermijnen</a></li>
+          <li><a href="#rechten">Jouw rechten</a></li>
+          <li><a href="#beveiliging">Beveiliging en datalekken</a></li>
+          <li><a href="#cookies">Cookies en lokale opslag</a></li>
+          <li><a href="#overig">Overig</a></li>
+          <li><a href="#contact">Contact en klachten</a></li>
+        </ol>
+      </nav>
+
+      <section class="legal__sec" id="wie">
+        <h2><i>1</i>Wie is verantwoordelijk?</h2>
+        <p>Glanzza is een eenmanszaak van <b>Eliyah Impelmans</b>, Nederland — hierna “Glanzza”, “wij”. Voor de gegevens van bedrijven, leads en bezoekers zijn wij de <b>verwerkingsverantwoordelijke</b> in de zin van de AVG.</p>
+        <ul>
+          <li>Handelsnaam: Glanzza</li>
+          <li>Adres: <span class="todo">[straat + huisnummer, postcode, plaats]</span></li>
+          <li>KVK-nummer: <span class="todo">[KVK-nummer]</span></li>
+          <li>E-mail: <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a></li>
+        </ul>
+        <p>Werk je met ons samen als bedrijf? Dan staan de afspraken in de <a href="voorwaarden.html">algemene voorwaarden</a>, inclusief de verwerkersafspraak voor de gegevens van jouw klanten.</p>
+      </section>
+
+      <section class="legal__sec" id="welke">
+        <h2><i>2</i>Welke gegevens verwerken we?</h2>
+        <h3>Bedrijven die zich aanmelden (onboarding en beheer)</h3>
+        <ul>
+          <li>bedrijfsnaam en linknaam (bijvoorbeeld <code>glansdetailing-venlo</code>)</li>
+          <li>diensten met prijzen en duur, openingstijden en gesloten dagen</li>
+          <li>aanbetalingsbedrag en de betaallink die jij zelf aanlevert (Tikkie, Wero of anders)</li>
+          <li>e-mailadres voor boekingsmeldingen en een beheer-code om je pagina te wijzigen</li>
+        </ul>
+        <h3>Klanten die een afspraak boeken (boeken.html)</h3>
+        <ul>
+          <li>naam en telefoonnummer</li>
+          <li>gekozen dienst, datum en tijd (en de duur daarvan)</li>
+          <li>optioneel: voertuig/omschrijving en opmerkingen</li>
+          <li>optioneel: e-mailadres, alleen om 24 uur voor de afspraak een herinnering te sturen</li>
+        </ul>
+        <h3>Leads (founders-formulier op de site)</h3>
+        <ul>
+          <li>bedrijfsnaam, e-mailadres en het bericht dat je zelf typt</li>
+        </ul>
+        <h3>Wat we niet verwerken</h3>
+        <ul>
+          <li>We verwerken <b>geen betaalgegevens</b>: kaartnummers, IBAN’s van klanten of betaaltransacties komen nooit bij ons binnen. Betalingen lopen via de betaallink van het bedrijf zelf of via een gewone bankoverschrijving.</li>
+          <li>Geen tracking-cookies, geen advertentieprofielen, geen geautomatiseerde besluitvorming of profilering.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="waarom">
+        <h2><i>3</i>Waarom, en op welke grondslag?</h2>
+        <div class="legal__wrap">
+          <table>
+            <thead><tr><th>Doel</th><th>Gegevens</th><th>Grondslag (AVG art. 6)</th></tr></thead>
+            <tbody>
+              <tr><td>Je boekingspagina tonen en boekingen registreren</td><td>bedrijfsgegevens, diensten, openingstijden, boekingen</td><td>Uitvoering van de overeenkomst (lid 1b)</td></tr>
+              <tr><td>Herinnering per e-mail 24 uur voor de afspraak</td><td>naam, dienst, datum, tijd, e-mailadres</td><td>Uitvoering van de overeenkomst met het bedrijf / gerechtvaardigd belang om no-shows te beperken (lid 1b en 1f)</td></tr>
+              <tr><td>Melding aan het bedrijf bij een nieuwe boeking</td><td>boekingsgegevens</td><td>Gerechtvaardigd belang (lid 1f)</td></tr>
+              <tr><td>Contact over je aanmelding of vraag</td><td>bedrijfsnaam, e-mail, bericht</td><td>Toestemming of gerechtvaardigd belang (lid 1a / 1f)</td></tr>
+              <tr><td>Facturatie en administratie van je abonnement</td><td>bedrijfsnaam, betaalstatus</td><td>Wettelijke verplichting (lid 1c)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="legal__sec" id="rollen">
+        <h2><i>4</i>Twee rollen: bedrijf en Glanzza</h2>
+        <p>Dit is het belangrijkste onderscheid in deze verklaring.</p>
+        <ul>
+          <li><b>Aanmelden en betalen van je abonnement:</b> daarvoor zijn wij verwerkingsverantwoordelijke. Wij bepalen waarom en hoe die gegevens worden gebruikt.</li>
+          <li><b>Boekingen en gegevens van jouw klanten:</b> daarvoor is <b>het bedrijf</b> verwerkingsverantwoordelijke en is Glanzza <b>verwerker</b>. Wij verwerken die gegevens uitsluitend in opdracht van het bedrijf en alleen om de boekingspagina te laten werken: de boeking vastleggen, de afspraak in de agenda zetten, het bedrijf waarschuwen en de herinnering versturen.</li>
+        </ul>
+        <p>Dat betekent in de praktijk:</p>
+        <ul>
+          <li>Een klant die zijn gegevens wil inzien, corrigeren of verwijderen, kan dat het beste bij <b>het bedrijf</b> doen. Wij helpen het bedrijf daarbij, maar beslissen niet zelf.</li>
+          <li>Het bedrijf moet zijn eigen klanten informeren over het gebruik van hun gegevens (en dus ook over de herinneringsmail) en mag alleen gegevens laten verwerken waarvoor het een grondslag heeft.</li>
+          <li>De afspraken die hierover gelden (artikel 28 AVG) staan in de <a href="voorwaarden.html#verwerker">verwerkersafspraak</a> in onze algemene voorwaarden.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="waar">
+        <h2><i>5</i>Waar staan de gegevens?</h2>
+        <p>Alles staat in één centrale Google Sheet (van Glanzza) en — nadat een bedrijf is geactiveerd — in een <b>eigen</b> Google Sheet en Google Agenda die met het e-mailadres van dat bedrijf zijn gedeeld. Elk bedrijf ziet dus alleen zijn eigen boekingen. De website zelf staat bij Vercel.</p>
+        <ul>
+          <li>Openbare boekingspagina: toont alleen de bedrijfsnaam, diensten, prijzen, openingstijden en bezette tijden. Nooit het e-mailadres, de betaallink, het Sheet-ID of de beheer-code.</li>
+          <li>Beheerpagina: alleen te openen met de persoonlijke beheer-code van dat bedrijf.</li>
+          <li>Wij gebruiken de gegevens niet voor marketing of doorverkoop.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="sub">
+        <h2><i>6</i>Subprocessoren en doorgifte buiten de EER</h2>
+        <p>We werken met een klein aantal leveranciers. Alleen voor zover nodig voor de dienst:</p>
+        <div class="legal__wrap">
+          <table>
+            <thead><tr><th>Leverancier</th><th>Waarvoor</th><th>Waar / waarborg</th></tr></thead>
+            <tbody>
+              <tr><td>Google (Google Sheets, Gmail, Google Agenda, Apps Script)</td><td>opslag van bedrijfs- en boekingsgegevens, verzenden van e-mails (meldingen en herinneringen), agenda</td><td>Google Ireland Ltd.; doorgifte aan Google LLC (VS) op basis van het EU-VS Data Privacy Framework en/of standaardcontractbepalingen</td></tr>
+              <tr><td>Vercel Inc.</td><td>hosting en leveren van de website</td><td>VS/edge-netwerk; standaardcontractbepalingen en EU-clausules</td></tr>
+              <tr><td>OpenStreetMap (Overpass)</td><td>publieke bedrijfsgegevens voor onze eigen leadlijst — nooit gegevens van klanten of bedrijven</td><td>publieke databron</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Wij wijzigen deze lijst niet zonder dat te melden. Komt er een leverancier bij, dan staat die hier genoemd voordat we hem in gebruik nemen.</p>
+        <p>Betalingen van klanten aan een bedrijf lopen buiten ons om, rechtstreeks via de eigen betaallink van dat bedrijf. Abonnementen van bedrijven betaal je via een gewone bankoverschrijving of Tikkie; daarbij bewaren wij alleen <i>dat</i> je betaald hebt (een status-regel in de administratie), geen betaalgegevens.</p>
+      </section>
+
+      <section class="legal__sec" id="hoe-lang">
+        <h2><i>7</i>Bewaartermijnen</h2>
+        <ul>
+          <li><b>Boekingen:</b> zolang het bedrijf klant is. Het bedrijf kan een boeking zelf verwijderen; bij opzegging verwijderen wij de bedrijfsgegevens binnen 90 dagen, tenzij er een bewaarplicht geldt.</li>
+          <li><b>Bedrijfsgegevens en instellingen:</b> zolang je klant bent, daarna maximaal 90 dagen.</li>
+          <li><b>Leads:</b> maximaal 12 maanden, of korter als je eerder vraagt om verwijdering.</li>
+          <li><b>Factuur- en betaalstatusgegevens:</b> 7 jaar, op grond van de wettelijke administratieplicht.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="rechten">
+        <h2><i>8</i>Jouw rechten</h2>
+        <p>Je hebt — binnen de grenzen van de AVG — recht op:</p>
+        <ul>
+          <li><b>Inzage</b> in de gegevens die we van je hebben;</li>
+          <li><b>Correctie</b> van onjuiste gegevens;</li>
+          <li><b>Verwijdering</b> (“recht op vergetelheid”);</li>
+          <li><b>Beperking</b> van de verwerking;</li>
+          <li><b>Bezwaar</b> tegen verwerking op grond van gerechtvaardigd belang;</li>
+          <li><b>Overdraagbaarheid</b>: je gegevens in een gangbaar bestand ontvangen;</li>
+          <li><b>Intrekken van toestemming</b>, als de verwerking daarop is gebaseerd.</li>
+        </ul>
+        <p>Mail je verzoek naar <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a>. We reageren binnen één maand. Om misbruik te voorkomen kunnen we je vragen om je verzoek te bevestigen of je identiteit aannemelijk te maken; je krijgt nooit meer gegevens dan waar je recht op hebt.</p>
+        <p>Ben je klant van een bedrijf dat via Glanzza boekt? Richt je verzoek dan in eerste instantie tot dat bedrijf: zij zijn verwerkingsverantwoordelijke voor jouw boekingsgegevens.</p>
+      </section>
+
+      <section class="legal__sec" id="beveiliging">
+        <h2><i>9</i>Beveiliging en datalekken</h2>
+        <ul>
+          <li>De website is volledig via HTTPS; we sturen een HSTS-header mee.</li>
+          <li>Beheer gaat met een persoonlijke code per bedrijf; de publieke pagina toont geen e-mail, betaallink, Sheet-ID of beheer-code.</li>
+          <li>We werken met zo weinig toegang als nodig en delen geen accounts.</li>
+        </ul>
+        <p>Ontstaat er een datalek met risico voor jou of jouw klanten? Dan melden wij dat binnen 72 uur bij de Autoriteit Persoonsgegevens en, als dat nodig is, ook bij jou als bedrijf, zodat jij je eigen klanten kunt informeren.</p>
+      </section>
+
+      <section class="legal__sec" id="cookies">
+        <h2><i>10</i>Cookies en lokale opslag</h2>
+        <p>Glanzza plaatst <b>geen</b> tracking-, advertentie- of analytics-cookies. Daarom zie je ook geen cookiebanner: er valt niets te weigeren.</p>
+        <ul>
+          <li>We gebruiken alleen functionele lokale opslag (<code>localStorage</code>) in je browser, zoals het onthouden dat je de bovenste mededeling hebt weggeklikt. Dat is geen cookie en wordt niet naar ons verstuurd.</li>
+          <li>Onze host (Vercel) en Google kunnen technisch noodzakelijke cookies of logs plaatsen voor beveiliging en het leveren van de pagina. Daarvoor gelden hun eigen verklaringen.</li>
+          <li>De pagina voor onze eigen leadgeneratie (<code>/o-k7m2x9q.html</code>) is een intern gereedschap: niet openbaar gelinkt, uitgesloten in <code>robots.txt</code>, en de leadgegevens komen alleen vrij met een persoonlijke sleutel die server-side wordt gecontroleerd. De pagina verwerkt zelf geen bezoekersgegevens.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="overig">
+        <h2><i>11</i>Overig</h2>
+        <ul>
+          <li><b>Minderjarigen:</b> Glanzza is bedoeld voor bedrijven en hun klanten. We richten ons niet op kinderen en verzamelen niet bewust gegevens van minderjarigen.</li>
+          <li><b>Geen profilering:</b> we nemen geen geautomatiseerde besluiten met rechtsgevolgen over mensen.</li>
+          <li><b>Wijzigingen:</b> als deze verklaring wezenlijk verandert, passen we het versienummer en de datum bovenaan aan en informeren we zakelijke gebruikers per e-mail.</li>
+          <li><b>Deze pagina is geen juridisch advies</b>, maar onze eigen uitleg van wat we doen. Twijfel je of jouw situatie klopt? Mail ons.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="contact">
+        <h2><i>12</i>Contact en klachten</h2>
+        <p>Vragen over privacy of een verzoek indienen: <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a>.</p>
+        <p>Komen we er niet uit? Dan kun je een klacht indienen bij de <a href="https://www.autoriteitpersoonsgegevens.nl" target="_blank" rel="noopener noreferrer">Autoriteit Persoonsgegevens</a>.</p>
+        <p><a href="voorwaarden.html">Algemene voorwaarden →</a></p>
+      </section>
     </article>
   </main>
-  <footer class="footer" style="padding:28px 0"><div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div></footer>
+  <footer class="footer" style="padding:28px 0"><div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center;flex-wrap:wrap;gap:10px"><span>© 2026 Glanzza</span><span><a href="index.html" style="color:var(--mute)">Home</a> · <a href="privacy.html" style="color:var(--mute)">Privacy</a> · <a href="voorwaarden.html" style="color:var(--mute)">Voorwaarden</a></span></div></div></footer>
 </body>
 </html>

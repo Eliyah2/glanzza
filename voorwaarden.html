@@ -4,25 +4,38 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Voorwaarden — Glanzza</title>
-  <meta name="robots" content="noindex" />
+  <meta name="description" content="Algemene voorwaarden van Glanzza: wat je krijgt, wat het kost, wat jij regelt, de verwerkersafspraak voor gegevens van jouw klanten en hoe je opzegt." />
   <link rel="canonical" href="https://glanzza.vercel.app/voorwaarden.html" />
   <link rel="prefetch" href="index.html" />
   <meta name="theme-color" content="#070a0e" />
   <meta name="color-scheme" content="dark" />
-  <link rel="preload" href="assets/css/style.css" as="style" fetchpriority="high" />
-  <link rel="stylesheet" href="assets/css/style.css" fetchpriority="high" />
+  <link rel="preload" href="assets/css/style.css?v=20261027-2" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027-2" fetchpriority="high" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Glanzza" />
   <meta name="format-detection" content="telephone=no" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <style>
-    .legal{padding:clamp(32px,5vw,64px) 0 80px; max-width:760px; margin:0 auto}
-    .legal h1{font-size:clamp(1.6rem,3vw,2.2rem); margin-bottom:12px}
-    .legal h2{font-size:1.15rem; margin:28px 0 10px}
-    .legal p,.legal li{color:var(--dim); font-size:.95rem; line-height:1.7}
+    .legal{padding:clamp(32px,5vw,56px) 0 80px; max-width:820px; margin:0 auto}
+    .legal h1{font-size:clamp(1.7rem,3.4vw,2.3rem); margin-bottom:10px}
+    .legal__meta{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 26px}
+    .legal__toc{background:var(--bg-1); border:1px solid var(--border); border-radius:var(--r); padding:18px 22px; margin-bottom:26px}
+    .legal__toc b{display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.1em; color:var(--mute); margin-bottom:10px}
+    .legal__toc ol{margin:0 0 0 18px; display:grid; gap:7px}
+    .legal__toc a{color:var(--dim); font-size:.9rem}
+    .legal__toc a:hover{color:var(--brand)}
+    .legal__sec{scroll-margin-top:96px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:clamp(18px,2.6vw,26px); margin-bottom:14px}
+    .legal h2{font-size:1.12rem; margin:0 0 10px; display:flex; gap:10px; align-items:baseline}
+    .legal h2 i{font-style:normal; color:var(--brand); font-size:.95rem; font-weight:800}
+    .legal h3{font-size:.98rem; margin:16px 0 6px; color:var(--text)}
+    .legal p,.legal li{color:var(--dim); font-size:.94rem; line-height:1.7}
     .legal ul{margin:10px 0 0 20px; display:grid; gap:6px}
     .legal a{color:var(--brand); text-decoration:underline}
+    .legal__box{border:1px solid rgba(201,242,77,.35); background:var(--brand-soft); border-radius:var(--r-sm); padding:14px 16px; margin-top:14px}
+    .legal__box p{color:var(--text)}
+    .todo{color:var(--warn); border-bottom:1px dashed rgba(255,195,92,.6)}
   </style>
 </head>
 <body>
@@ -37,36 +50,130 @@
   <main class="container">
     <article class="legal">
       <h1>Algemene voorwaarden</h1>
-      <p style="color:var(--mute);font-size:.85rem">Laatst bijgewerkt: 25 september 2026 — Glanzza, eenmanszaak Eliyah Impelmans</p>
-      <h2>1. Wat is Glanzza?</h2>
-      <p>Glanzza levert een boekingspagina per bedrijf (boeken.html?bedrijf=...), beheer via beheer.html en een centrale administratie in Google Sheets + Agenda. Je klanten boeken zelf een tijd en betalen eventueel een aanbetaling via jouw eigen Wero/Tikkie-link.</p>
-      <h2>2. Prijzen & betalen</h2>
-      <ul>
-        <li>Founders: <b>€15/maand (levenslang)</b> voor de eerste 10 klanten — zolang je actief blijft.</li>
-        <li>Daarna: Start €25/maand, Pro €49/maand. Prijzen excl. btw waar van toepassing, maandelijks opzegbaar.</li>
-        <li>Betaling via overschrijving (IBAN) of Tikkie. Je pagina wordt actief nadat je eerste betaling binnen is (binnen 24 uur). Bij EERSTE_MAAND_GRATIS is de eerste maand gratis.</li>
-        <li>Geen restitutie voor al verstreken maanden; opzeggen kan per einde betaalperiode.</li>
-      </ul>
-      <h2>3. Wat jij regelt</h2>
-      <ul>
-        <li>Je levert juiste bedrijfsgegevens en diensten/prijzen aan.</li>
-        <li>Je eigen Wero/Tikkie-link en aanbetaling stel je zelf in (via onboarding of beheer). Glanzza int geen aanbetalingen namens jou.</li>
-        <li>Je bewaart je beheer-link + code veilig (daarmee kan je pagina gewijzigd worden).</li>
-      </ul>
-      <h2>4. Beschikbaarheid</h2>
-      <p>We doen ons best voor hoge beschikbaarheid, maar geven geen uptime-garantie. Onderhoud en externe diensten (Google, Vercel) kunnen tijdelijk storing geven. Bij abonnement “verlopen” gaat je boekingspagina offline tot betaling hervat is.</p>
-      <h2>5. Aansprakelijkheid</h2>
-      <p>Glanzza is een hulpmiddel; jij blijft verantwoordelijk voor afspraken, prijzen en communicatie met je klanten. Onze aansprakelijkheid is beperkt tot wat je de laatste 3 maanden betaalde.</p>
-      <h2>6. Privacy</h2>
-      <p>Zie <a href="privacy.html">privacyverklaring</a>. We verwerken alleen gegevens die nodig zijn voor de boekingspagina.</p>
-      <h2>7. Opzeggen</h2>
-      <p>Mail naar <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a>. Opzeggen kan elke maand; je pagina blijft actief tot einde betaalperiode.</p>
-      <h2>8. Wijzigingen</h2>
-      <p>We kunnen deze voorwaarden wijzigen; bij materiële wijzigingen informeren we je per e-mail.</p>
-      <h2>9. Nederlands recht</h2>
-      <p>Op deze voorwaarden is Nederlands recht van toepassing.</p>
+      <div class="legal__meta">
+        <span class="chip">Versie 2.0</span>
+        <span class="chip">Bijgewerkt: 27 oktober 2026</span>
+        <span class="chip">Zakelijke dienstverlening (B2B)</span>
+      </div>
+      <p>Deze voorwaarden gelden voor het gebruik van Glanzza door bedrijven. Glanzza is een eenmanszaak van <b>Eliyah Impelmans</b>, <span class="todo">[straat + huisnummer, postcode, plaats]</span>, KVK <span class="todo">[KVK-nummer]</span>, btw-id <span class="todo">[btw-id]</span> — hierna “Glanzza”, “wij”.</p>
+
+      <nav class="legal__toc" aria-label="Inhoud">
+        <b>Inhoud</b>
+        <ol>
+          <li><a href="#wat">Wat is Glanzza?</a></li>
+          <li><a href="#prijzen">Prijzen en betalen</a></li>
+          <li><a href="#aanbetaling">Aanbetalingen: wat wij wel en niet doen</a></li>
+          <li><a href="#jij">Wat jij regelt</a></li>
+          <li><a href="#verwerker">Verwerkersafspraak voor gegevens van jouw klanten</a></li>
+          <li><a href="#beschikbaarheid">Beschikbaarheid</a></li>
+          <li><a href="#aansprakelijkheid">Aansprakelijkheid</a></li>
+          <li><a href="#opzeggen">Opzeggen</a></li>
+          <li><a href="#ip">Intellectuele eigendom</a></li>
+          <li><a href="#wijzigingen">Wijzigingen</a></li>
+          <li><a href="#recht">Toepasselijk recht en klachten</a></li>
+        </ol>
+      </nav>
+
+      <section class="legal__sec" id="wat">
+        <h2><i>1</i>Wat is Glanzza?</h2>
+        <p>Glanzza levert per bedrijf een eigen boekingspagina (<code>boeken.html?bedrijf=...</code>), een beheerpagina waarmee je je gegevens zelf aanpast, en een administratie in Google Sheets en Google Agenda. Klanten kiezen zelf een tijd binnen jouw openingstijden, jouw Google Sheet en Agenda worden bijgewerkt, en als je klant een e-mailadres invult krijgt hij 24 uur voor de afspraak automatisch een herinnering.</p>
+        <p>Glanzza is een hulpmiddel voor afspraken. Glanzza is <b>geen</b> partij bij de overeenkomst tussen jou en je klant, en geen betaaldienst.</p>
+      </section>
+
+      <section class="legal__sec" id="prijzen">
+        <h2><i>2</i>Prijzen en betalen</h2>
+        <ul>
+          <li><b>Glanzza:</b> €19 per maand.</li>
+          <li><b>Founders:</b> €15 per maand, levenslang dezelfde prijs — voor de eerste 10 bedrijven, zolang je klant blijft.</li>
+          <li><b>Eerste maand gratis</b>, geen setup-kosten, maandelijks opzegbaar.</li>
+          <li>Prijzen zijn in euro’s. Waar btw verschuldigd is, komt die erbij (bij een eenmanszaak zonder btw-plicht wordt er geen btw gerekend).</li>
+          <li>Betalen kan via bankoverschrijving of Tikkie. Je pagina wordt geactiveerd nadat je eerste betaling (of je gratis-maand-aanmelding) binnen is; dat doen we binnen 24 uur.</li>
+          <li>Geen restitutie voor al verstreken maanden. Prijsverhogingen kondigen we minimaal één maand van tevoren per e-mail aan; founders houden hun afgesproken prijs.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="aanbetaling">
+        <h2><i>3</i>Aanbetalingen: wat wij wel en niet doen</h2>
+        <ul>
+          <li>Jij stelt zelf een <b>aanbetalingsbedrag</b> in en levert je <b>eigen betaallink</b> aan (Tikkie, Wero, een betaalverzoek of anders).</li>
+          <li>Je klant betaalt die aanbetaling rechtstreeks aan jou, via jouw link. <b>Glanzza verwerkt geen betalingen</b>, int niet namens jou, houdt geen geld onder zich en controleert niet of een betaling daadwerkelijk is gedaan.</li>
+          <li>Zet de aanbetaling nooit hoger dan de prijs van je goedkoopste dienst. Onze systemen weigeren een aanbetaling die hoger is dan de goedkoopste dienst of boven €500 ligt.</li>
+          <li>De aanbetaling, de verrekening ervan met de behandeling en de annuleringsvoorwaarden zijn volledig jouw afspraak met je klant. Klachten daarover horen bij jou, niet bij Glanzza.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="jij">
+        <h2><i>4</i>Wat jij regelt</h2>
+        <ul>
+          <li>Je levert juiste en actuele bedrijfsgegevens, diensten, prijzen en openingstijden aan en houdt die bij via de beheerpagina.</li>
+          <li>Je gebruikt een betaallink die echt van jou is, en je bent zelf verantwoordelijk voor het innen en verrekenen van aanbetalingen.</li>
+          <li>Je bewaart je beheer-link en beheer-code veilig. Iedereen met die link en code kan je pagina aanpassen; bij verlies of misbruik meld je dat direct en blokkeren wij de code.</li>
+          <li>Je gebruikt Glanzza niet voor onwettige doeleinden, geen spam, geen misleidende prijzen en geen inhoud die inbreuk maakt op rechten van anderen.</li>
+          <li>Je zorgt voor je eigen naleving van de privacyregels naar je klanten — zie punt 5 hieronder.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="verwerker">
+        <h2><i>5</i>Verwerkersafspraak voor gegevens van jouw klanten</h2>
+        <p>Voor de gegevens van jouw klanten (naam, telefoonnummer, e-mailadres, dienst, datum, tijd, voertuig en opmerkingen) ben jij <b>verwerkingsverantwoordelijke</b> en is Glanzza <b>verwerker</b>. Deze afspraak geldt als verwerkersovereenkomst in de zin van artikel 28 AVG.</p>
+        <h3>Wat wij doen en laten</h3>
+        <ul>
+          <li>Wij verwerken die gegevens uitsluitend op jouw instructie en alleen om de boekingspagina te laten werken: de boeking vastleggen, je agenda en Sheet bijwerken, jou informeren en de herinneringsmail versturen.</li>
+          <li>Wij verkopen of verhuren de gegevens niet, gebruiken ze niet voor advertenties en niet voor onze eigen doeleinden.</li>
+          <li>Wij verstrekken ze alleen aan de subprocessoren uit de <a href="privacy.html#sub">privacyverklaring</a> (Google voor opslag en e-mail, Vercel voor hosting) en aan niemand anders, behoudens een wettelijke plicht.</li>
+          <li>Wij nemen passende technische en organisatorische maatregelen: HTTPS, beheer met een persoonlijke code, toegang zo beperkt mogelijk, geen betaalgegevens in onze systemen.</li>
+          <li>Een datalek dat risico oplevert melden wij zonder onredelijke vertraging — uiterlijk binnen 72 uur nadat wij het ontdekken — zodat jij je eigen meldplicht bij de Autoriteit Persoonsgegevens en je klanten kunt nakomen.</li>
+          <li>Wij helpen je op verzoek bij verzoeken van jouw klanten over hun gegevens.</li>
+          <li>Na beëindiging verwijderen wij de gegevens binnen 90 dagen, tenzij een wettelijke bewaarplicht geldt.</li>
+        </ul>
+        <div class="legal__box">
+          <p><b>Belangrijk voor jou:</b> jij bepaalt waarom je deze gegevens vastlegt, en jij moet je klanten daarover informeren. Vermeld in je eigen privacyverklaring in elk geval dat je een boekingssysteem gebruikt en dat klanten die hun e-mailadres invullen een herinnering ontvangen. Vraag niet meer gegevens dan je nodig hebt.</p>
+        </div>
+        <p>Wil je deze verwerkersafspraak als los ondertekend document? Mail ons en je krijgt hem op papier.</p>
+      </section>
+
+      <section class="legal__sec" id="beschikbaarheid">
+        <h2><i>6</i>Beschikbaarheid</h2>
+        <p>We doen ons best voor een hoge beschikbaarheid, maar geven geen uptime-garantie. Onderhoud en externe diensten (Google, Vercel, internetverbinding) kunnen tijdelijk storing geven. Staat je abonnement op “verlopen”, dan gaat je boekingspagina offline tot je betaling weer binnen is. We kondigen gepland onderhoud waar mogelijk vooraf aan.</p>
+      </section>
+
+      <section class="legal__sec" id="aansprakelijkheid">
+        <h2><i>7</i>Aansprakelijkheid</h2>
+        <ul>
+          <li>Glanzza is een hulpmiddel. Jij blijft verantwoordelijk voor je afspraken, prijzen, aanbetalingen en communicatie met je klanten.</li>
+          <li>Wij zijn niet aansprakelijk voor schade door gemiste of dubbele afspraken, no-shows, niet-betaalde aanbetalingen, of schade die voortkomt uit gegevens die jij zelf onjuist aanlevert.</li>
+          <li>Onze aansprakelijkheid is beperkt tot het bedrag dat je in de drie maanden vóór de gebeurtenis aan ons betaalde, en in elk geval tot het maximum dat de wet toestaat.</li>
+          <li>Beperkingen in dit artikel gelden niet bij opzet of bewuste roekeloosheid van onze kant.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="opzeggen">
+        <h2><i>8</i>Opzeggen</h2>
+        <ul>
+          <li>Je kunt maandelijks opzeggen met een bericht aan <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a>. Je pagina blijft actief tot het einde van de betaalperiode.</li>
+          <li>Wil je dat je gegevens direct verwijderd worden? Dat melden we erbij; we verwijderen ze dan binnen 90 dagen (behoudens bewaarplicht).</li>
+          <li>Wij kunnen de dienst beëindigen met een opzegtermijn van één maand, of per direct bij gebruik dat deze voorwaarden schendt.</li>
+        </ul>
+      </section>
+
+      <section class="legal__sec" id="ip">
+        <h2><i>9</i>Intellectuele eigendom</h2>
+        <p>De software, vormgeving en teksten van Glanzza blijven van ons. Jouw bedrijfsgegevens, diensten, prijzen en klantgegevens blijven van jou: je kunt ze op elk moment uit je eigen Google Sheet halen. Er is geen vendor lock-in op je gegevens.</p>
+      </section>
+
+      <section class="legal__sec" id="wijzigingen">
+        <h2><i>10</i>Wijzigingen</h2>
+        <p>We kunnen deze voorwaarden aanpassen. Bij een materiële wijziging informeren we je minimaal één maand van tevoren per e-mail. Ben je het niet eens? Dan kun je vóór de ingangsdatum opzeggen.</p>
+      </section>
+
+      <section class="legal__sec" id="recht">
+        <h2><i>11</i>Toepasselijk recht en klachten</h2>
+        <p>Op deze voorwaarden is Nederlands recht van toepassing. Geschillen leggen we voor aan de bevoegde rechter in Nederland.</p>
+        <p>Heb je een klacht? Mail <a href="mailto:eliyahimpelmans9@gmail.com">eliyahimpelmans9@gmail.com</a> — we reageren binnen 14 dagen en zoeken eerst samen een oplossing.</p>
+        <p><a href="privacy.html">Privacyverklaring →</a></p>
+      </section>
     </article>
   </main>
-  <footer class="footer" style="padding:28px 0"><div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center"><span>© 2026 Glanzza</span></div></div></footer>
+  <footer class="footer" style="padding:28px 0"><div class="container"><div class="footer__bottom" style="border:0;padding:0;justify-content:center;flex-wrap:wrap;gap:10px"><span>© 2026 Glanzza</span><span><a href="index.html" style="color:var(--mute)">Home</a> · <a href="privacy.html" style="color:var(--mute)">Privacy</a> · <a href="voorwaarden.html" style="color:var(--mute)">Voorwaarden</a></span></div></div></footer>
 </body>
 </html>

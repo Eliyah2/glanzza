@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#070a0e" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027-2" />
   <style>
     .oh { padding: clamp(32px,5vw,56px) 0 80px; }
     .oh__head { margin-bottom: 22px; }
@@ -95,15 +95,54 @@
   <script>
   (function () {
     "use strict";
-    var PIN = "2008";
     var CENTRAL_URL = "https://script.google.com/macros/s/AKfycbzW0bmYcRv0S0QKqAh2YUmC4sZoDw9TRdYZxSqW8Hba-WgyKugyaTr_i95wjZYbsXMenQ/exec";
     var gate = document.getElementById("gate");
-    function checkPin() {
-      if (document.getElementById("pin").value === PIN) { gate.classList.add("hide"); }
-      else { document.getElementById("pin-err").textContent = "Onjuiste pincode."; }
+    var TOEGANG = "";   // de pincode die de server heeft geaccepteerd
+
+    // JSONP — werkt ook als de browser geen CORS toestaat bij script.google.com
+    function jsonp(query, cb) {
+      var n = "__glanzza_" + Date.now() + "_" + Math.random().toString(36).slice(2, 5);
+      var klaar = false;
+      function opruimen() { try { delete window[n]; } catch (e) {} var el = document.getElementById(n); if (el) el.remove(); }
+      var timer = setTimeout(function () { if (klaar) return; klaar = true; opruimen(); cb(null); }, 9000);
+      window[n] = function (data) { if (klaar) return; klaar = true; clearTimeout(timer); try { cb(data); } finally { opruimen(); } };
+      var s = document.createElement("script");
+      s.id = n;
+      s.src = CENTRAL_URL + "?" + query + "&callback=" + n;
+      s.onerror = function () { if (klaar) return; klaar = true; clearTimeout(timer); opruimen(); cb(null); };
+      document.head.appendChild(s);
     }
-    document.getElementById("pin-btn").addEventListener("click", checkPin);
-    document.getElementById("pin").addEventListener("keydown", function (e) { if (e.key === "Enter") checkPin(); });
+
+    // De pincode wordt door de server gecontroleerd — hij staat dus niet in deze pagina.
+    function unlock() {
+      var pin = document.getElementById("pin").value.trim();
+      var err = document.getElementById("pin-err");
+      if (!pin) { err.textContent = "Vul je pincode in."; return; }
+      err.textContent = "Controleren…";
+      jsonp("outreach=1&key=" + encodeURIComponent(pin), function (d) {
+        if (d && d.ok) {
+          TOEGANG = pin;
+          err.textContent = "";
+          gate.classList.add("hide");
+          renderLeads(d.leads || []);
+          loadOsm();
+          return;
+        }
+        if (!d) {
+          err.textContent = "Kon de server niet bereiken. Controleer je verbinding en probeer opnieuw.";
+          return;
+        }
+        if (d.error === "geen_sleutel") {
+          err.innerHTML = "Geen sleutel ingesteld. Zet <b>LEADS_KEY</b> in Apps Script → Projectinstellingen → Scripteigenschappen.";
+        } else if (d.error === "geen_toegang") {
+          err.textContent = "Onjuiste pincode.";
+        } else {
+          err.innerHTML = "De backend kent dit endpoint nog niet. Plak de nieuwe <b>code.gs</b> in Apps Script en maak daarna een nieuwe implementatie.";
+        }
+      });
+    }
+    document.getElementById("pin-btn").addEventListener("click", unlock);
+    document.getElementById("pin").addEventListener("keydown", function (e) { if (e.key === "Enter") unlock(); });
 
     // ===== Lead-verkenner: 3 verse zoekopdrachten per dag =====
     var NICHES = ["autopoetsbedrijf", "car detailing", "kapsalon", "barbershop", "hondentrimsalon", "nagelstudio", "schoonheidssalon", "pedicure salon", "tattooshop", "personal trainer", "autoruit tinting", "poetsbedrijf auto"];
@@ -207,10 +246,10 @@
       var n = "__glanzza_osm_" + Date.now() + "_" + Math.random().toString(36).slice(2,5);
       var done=false;
       var timer=setTimeout(function(){ if(done) return; done=true; try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Kon de leads niet laden (timeout) — probeer Verversen.</p>'; }, 9000);
-      window[n] = function (data) { if(done) return; done=true; clearTimeout(timer); try { renderOsm(data && data.leads || []); } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } };
+      window[n] = function (data) { if(done) return; done=true; clearTimeout(timer); try { if (data && data.ok === false) { box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Geen toegang tot de leads — controleer je pincode.</p>'; } else { renderOsm(data && data.leads || []); } } finally { try{ delete window[n]; }catch(e){} var el=document.getElementById(n); if(el) el.remove(); } };
       var s = document.createElement("script");
       s.id=n;
-      s.src = CENTRAL_URL + "?leads=1" + String.fromCharCode(38) + "callback=" + n;
+      s.src = CENTRAL_URL + "?leads=1&key=" + encodeURIComponent(TOEGANG) + String.fromCharCode(38) + "callback=" + n;
       s.onerror = function () { if(done) return; done=true; clearTimeout(timer); try{ delete window[n]; }catch(e){} var el2=document.getElementById(n); if(el2) el2.remove(); box.innerHTML = '<p style="color:var(--mute);font-size:.9rem">Kon de leads niet laden.</p>'; };
       document.head.appendChild(s);
     }
@@ -223,27 +262,7 @@
         navigator.clipboard.writeText(txt).then(function () { b.textContent = "Gekopieerd ✓"; }, function () { b.textContent = "Handmatig kopiëren"; });
       } else { b.textContent = "Handmatig kopiëren"; }
     });
-    loadOsm();
 
-    // ===== Leads + persoonlijke mails =====
-    var LEADS = [
-      { n: "Trimsalon Nono", s: "Trimsalon", c: "(NL)", e: "info@trimsalonnono.nl", o: "even over jullie no-show-beleid", b: "Hoi,\n\nIk zag dat jullie een no-show-beleid hebben — dus jullie weten hoe vervelend het is als iemand gewoon niet komt.\n\nIk ben een boekingssysteem aan het maken speciaal voor trimsalons, waarbij klanten vooraf een kleine aanbetaling doen. Mag ik je 5 minuutjes vragen hoe jullie dat nu aanpakken?\n\nGroet,\nEliyah" },
-      { n: "Hondentrimsalon Murphy", s: "Trimsalon", c: "Geleen", e: "info@hondentrimsalonmurphy.nl", o: "hoe plannen jullie de afspraken?", b: "Hoi,\n\nEven een vraagje: hoe komen afspraken bij jullie nu binnen — WhatsApp, telefoon of online?\n\nIk ben namelijk een simpel boekingssysteem aan het maken voor trimsalons (met aanbetaling vooraf). Zou je 5 minuten hebben om me te vertellen hoe jullie dat nu doen?\n\nGroet,\nEliyah" },
-      { n: "Jixer's Trimsalon", s: "Trimsalon", c: "Geleen", e: "info@jixers.nl", o: "kost een no-show jou veel?", b: "Hoi,\n\nMag ik je iets vragen? Wat kost een no-show jou aan het eind van de maand?\n\nIk maak een boekingssysteem met aanbetaling voor trimsalons en zoek echte ervaringen van ondernemers. 5 minuutjes sparren?\n\nGroet,\nEliyah" },
-      { n: "Hondentrimsalon Spaubeek", s: "Trimsalon", c: "Spaubeek", e: "info@hondentrimsalonspaubeek.nl", o: "vraagje over no-shows", b: "Hoi,\n\nHoe gaan jullie eigenlijk om met klanten die niet komen opdagen? Dat blijkt bij veel trimsalons een groot probleem.\n\nIk ben een eenvoudig boekingssysteem aan het bouwen (klant betaalt een aanbetaling bij het boeken). Vertel je me in 5 minuten hoe jullie dat nu doen?\n\nGroet,\nEliyah" },
-      { n: "Trimsalon Het Hondje", s: "Trimsalon", c: "Landgraaf", e: "info@trimsalonhethondje.nl", o: "hoe regelen jullie afspraken?", b: "Hoi,\n\nIk zag Trimsalon Het Hondje in Landgraaf. Hoe snel zijn jullie volgeboekt, en hoe vaak komt er iemand niet?\n\nIk maak een boekingssysteem met aanbetaling voor trimsalons. Mag ik jullie daar 5 minuten over vragen stellen?\n\nGroet,\nEliyah" },
-      { n: "Trimsalon Hond & Hip", s: "Trimsalon", c: "Zuid-Limburg", e: "info@hondenhip.nl", o: "online boeken voor jullie salon?", b: "Hoi,\n\nKunnen klanten bij jullie online boeken of gaat dat via WhatsApp?\n\nIk maak een simpele boekingspagina met aanbetaling voor trimsalons. Zou je 5 minuutjes hebben om me te vertellen wat jullie het liefst zouden willen?\n\nGroet,\nEliyah" },
-      { n: "Happy Dog Trimsalon", s: "Trimsalon", c: "Venlo", e: "info@happydogvenlo.nl", o: "no-shows bij Happy Dog", b: "Hoi,\n\nEen trimsalon-afspraak kost je zo een half uur extra werk — een no-show is dan extra zuur.\n\nIk ben een boekingssysteem met aanbetaling aan het maken voor trimsalons. Mag ik je 5 minuten vragen hoe jullie dit nu opvangen?\n\nGroet,\nEliyah" },
-      { n: "Trimsalon Make It Easy", s: "Trimsalon", c: "(NL)", e: "coatcare@outlook.com", o: "vraagje over jullie afspraken", b: "Hoi,\n\nIk las dat jullie afspraken via WhatsApp en e-mail regelen. Werkt dat voor jullie, of kost het veel tijd?\n\nIk bouw een simpele boekingspagina met aanbetaling voor trimsalons. 5 minuten sparren zou me enorm helpen.\n\nGroet,\nEliyah" },
-      { n: "Brilliant Detailing", s: "Detailing", c: "Venlo", e: "info@brilliantdetailing.eu", o: "vraag over jullie afspraken", b: "Hoi,\n\nJullie doen van die mooie, lange behandelingen. Als er dan iemand niet komt opdagen, is dat een flinke hap uit je dag.\n\nIk ben een eenvoudige boekingspagina aan het maken met een aanbetaling vooraf. Mag ik jullie 5 minuten vragen hoe jullie dat nu oplossen?\n\nGroet,\nEliyah" },
-      { n: "Hair & Looks (Roermond)", s: "Kapsalon", c: "Roermond", e: "roermond-centrum@hairandlooks.nl", o: "hoe vangen jullie no-shows op?", b: "Hoi,\n\nIk zag Hair & Looks in Roermond. Hoe vangen jullie het op als een klant niet komt?\n\nIk maak een Nederlandstalige boekingspagina met aanbetaling voor kappers en salons. Zou je me 5 minuten vertellen hoe jullie dat nu doen?\n\nGroet,\nEliyah" },
-      { n: "Kop Sittard", s: "Kapsalon", c: "Sittard", e: "info@kopsittard.nl", o: "even een vraagje", b: "Hoi,\n\nMag ik je iets vragen over de planning bij Kop in Sittard? Hoe vaak komt het voor dat een klant niet komt opdagen, en vraagt een aanbetaling dan iets af?\n\nIk ben een simpel boekingssysteem met aanbetaling aan het maken. 5 minuten?\n\nGroet,\nEliyah" },
-      { n: "Schoonheidsinstituut Pour Vous", s: "Schoonheidssalon", c: "Roermond", e: "mail@pourvousschoonheidsinstituut.nl", o: "vraagje over no-shows", b: "Hoi,\n\nBehandelingen bij jullie duren vaak een uur — een no-show kost dan echt geld.\n\nIk maak een boekingspagina met aanbetaling voor lokale salons. Mag ik je 5 minuten om je ervaring vragen?\n\nGroet,\nEliyah" },
-      { n: "Carwash Number 1", s: "Carwash", c: "Roermond", e: "info@carwashnumber1.nl", o: "hoe plannen klanten bij jullie?", b: "Hoi,\n\nKorte vraag: komen klanten bij Carwash Number 1 op afspraak of gewoon langs?\n\nIk maak een boekingspagina met aanbetaling voor autobedrijven. Zou je 5 minuten hebben om me te vertellen hoe jullie het nu doen?\n\nGroet,\nEliyah" },
-      { n: "Carwash Roermond", s: "Carwash", c: "Roermond", e: "info@carwash-roermond.nl", o: "vraagje over afspraken", b: "Hoi,\n\nEven nieuwsgierig: hoe komen afspraken bij jullie binnen, en heb je weleens last van klanten die niet komen opdagen?\n\nIk maak een Nederlandstalige boekingspagina met aanbetaling. 5 minuten sparren?\n\nGroet,\nEliyah" },
-      { n: "Claro Carwash", s: "Carwash", c: "Roermond", e: "info@claro-carwash.com", o: "kunnen jullie hier iets mee?", b: "Hoi,\n\nHoeveel klanten komen er bij jullie per maand niet opdagen? En vraagt een aanbetaling dan iets af?\n\nIk ben zoiets aan het maken: online boeken + iDEAL-aanbetaling in één. Zou je 5 minuten hebben om me feedback te geven?\n\nGroet,\nEliyah" },
-      { n: "WasArena (bij Wealer)", s: "Carwash/poets", c: "Venlo", e: "info@dewasarena.nl", o: "poets-afspraken plannen", b: "Hoi,\n\nHoe plannen jullie poets-afspraken nu — telefoon, WhatsApp of via de site?\n\nIk maak een simpele boekingspagina met aanbetaling voor lokale bedrijven. Mag ik jullie 5 minuten om feedback vragen?\n\nGroet,\nEliyah" }
-    ];
 
     var AMP = String.fromCharCode(38);
     var SLEUTEL_SUBJ = "sub" + "ject";
@@ -257,9 +276,12 @@
     try { sent = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { sent = {}; }
 
     var list = document.getElementById("list");
-    document.getElementById("tot").textContent = LEADS.length;
 
-    LEADS.forEach(function (L) {
+    function renderLeads(arr) {
+      var leads = Array.isArray(arr) ? arr : [];
+      list.innerHTML = "";
+      document.getElementById("tot").textContent = leads.length;
+      leads.forEach(function (L) {
       var el = document.createElement("div");
       el.className = "lead" + (sent[L.e] ? " lead--done" : "");
       var wrap = document.createElement("div");
@@ -286,7 +308,8 @@
       done.dataset.done = L.e; done.checked = !!sent[L.e];
       el.appendChild(wrap);
       list.appendChild(el);
-    });
+      });
+    }
 
     function upd() {
       var n = 0;

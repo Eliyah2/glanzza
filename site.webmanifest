@@ -1,7 +1,7 @@
 {
-  "name": "Glanzza — Boekingen & Wero-aanbetalingen",
+  "name": "Glanzza — Boekingen & aanbetalingen",
   "short_name": "Glanzza",
-  "description": "De Nederlandstalige boekingstool voor afspraakbedrijven. Online boeken, herinneringen en Wero-aanbetaling.",
+  "description": "De Nederlandstalige boekingspagina voor afspraakbedrijven. Online boeken, automatische e-mailherinneringen en een aanbetaling via jouw eigen betaallink.",
   "lang": "nl",
   "start_url": "/",
   "display": "standalone",

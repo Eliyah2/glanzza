@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Boek een afspraak</title>
-  <meta name="description" content="Boek een afspraak en betaal je aanbetaling veilig via Wero." />
+  <meta name="description" content="Boek een afspraak en betaal je aanbetaling via de betaallink van het bedrijf." />
   <meta name="theme-color" content="#070a0e" />
   <meta name="color-scheme" content="dark" />
   <meta http-equiv="x-dns-prefetch-control" content="on" />
@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://script.google.com" crossorigin />
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
   <link rel="dns-prefetch" href="https://script.google.com" />
-  <link rel="preload" href="assets/css/style.css" as="style" fetchpriority="high" />
-  <link rel="stylesheet" href="assets/css/style.css" fetchpriority="high" />
+  <link rel="preload" href="assets/css/style.css?v=20261027-2" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027-2" fetchpriority="high" />
   <link rel="prefetch" href="onboarding.html" />
   <link rel="prefetch" href="index.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
@@ -79,7 +79,7 @@
     <section class="booking-hero">
       <div class="container">
         <h1>Boek je afspraak</h1>
-        <p>Kies je dienst en gewenste tijd bij <b id="bedrijf-naam">Glanzza</b>. Je betaalt een aanbetaling van <b id="dep-hero">€50</b> via Wero om je plek te garanderen.</p>
+        <p>Kies je dienst en gewenste tijd bij <b id="bedrijf-naam">Glanzza</b>. Je betaalt een aanbetaling van <b id="dep-hero">€50</b> via de betaallink van het bedrijf om je plek te garanderen.</p>
       </div>
     </section>
 
@@ -111,6 +111,12 @@
               </div>
               </div>
               <div class="field">
+                <label for="email">E-mail (optioneel — voor je herinnering)</label>
+                <input id="email" name="email" type="email" placeholder="jij@voorbeeld.nl" autocomplete="email" />
+                <span class="field__err" data-for="email"></span>
+                <span class="field__hint">Met je e-mailadres krijg je 24 uur voor de afspraak automatisch een herinnering.</span>
+              </div>
+              <div class="field">
                 <label for="datum">Voorkeursdatum</label>
                 <input id="datum" name="datum" type="date" required />
                 <span class="field__err" data-for="datum"></span>
@@ -136,11 +142,11 @@
 
             <div class="pay" id="pay">
               <b>Je boeking is ontvangen! ✓</b>
-              <p style="margin:10px 0 0;color:var(--dim)">Om je plek te behouden, betaal je de aanbetaling van <b id="pay-bedrag">€50</b>:</p>
-              <a class="btn btn--primary" id="pay-link" href="#" target="_blank" rel="noopener">Betaal aanbetaling via Wero →</a>
+              <p style="margin:10px 0 0;color:var(--dim)">Om je plek te behouden, betaal je de aanbetaling van <b id="pay-bedrag">€50</b> via de betaallink van het bedrijf:</p>
+              <a class="btn btn--primary" id="pay-link" href="#" target="_blank" rel="noopener">Betaal aanbetaling →</a>
             </div>
 
-            <p class="hint">Je betaalt een aanbetaling om je afspraak te garanderen. Deze wordt verrekend met je behandeling. Annuleer minimaal 24 uur van tevoren voor een volledige terugbetaling.</p>
+            <p class="hint">De aanbetaling gaat rechtstreeks naar het bedrijf (niet via Glanzza) en wordt verrekend met je behandeling. Vraag het bedrijf naar hun annuleringsvoorwaarden.</p>
           </div>
 
           <aside id="side">
@@ -148,7 +154,7 @@
               <h3>Zo werkt het</h3>
               <ol class="steps-mini">
                 <li><b>1. Boek</b> — kies je dienst en tijd.</li>
-                <li><b>2. Betaal aanbetaling</b> — via Wero.</li>
+                <li><b>2. Betaal aanbetaling</b> — via de betaallink van het bedrijf.</li>
                 <li><b>3. Bevestigd</b> — we bevestigen binnen één werkdag.</li>
               </ol>
             </div>
@@ -158,7 +164,7 @@
             </div>
             <div class="side-card side-card--accent">
               <h3>Waarom een aanbetaling?</h3>
-              <p>Zo voorkomen we no-shows en blijft jouw plek gegarandeerd. De aanbetaling wordt verrekend met je behandeling.</p>
+              <p>Zo voorkomen we no-shows en blijft jouw plek gegarandeerd. De aanbetaling gaat direct naar het bedrijf en wordt verrekend met je behandeling.</p>
             </div>
           </aside>
         </div>
@@ -280,7 +286,7 @@
       var payLink = document.getElementById("pay-link");
       if (aanbetaling > 0 && betaalLink) {
         payLink.href = betaalLink;
-        payLink.textContent = "Betaal €" + aanbetaling + " via Wero →";
+        payLink.textContent = "Betaal €" + aanbetaling + " aanbetaling →";
         payLink.style.display = "";
         payLink.removeAttribute("aria-disabled");
         payLink.style.pointerEvents = "";
@@ -390,18 +396,20 @@
         dienst: select.value,
         naam: document.getElementById("naam").value.trim(),
         telefoon: document.getElementById("telefoon").value.trim(),
+        email: document.getElementById("email").value.trim(),
         datum: document.getElementById("datum").value,
         tijd: document.getElementById("tijd").value,
         auto: document.getElementById("auto").value.trim(),
         opmerkingen: document.getElementById("opmerkingen").value.trim(),
       };
-      ["dienst", "naam", "telefoon", "datum", "tijd"].forEach(function (k) { setErr(k); });
+      ["dienst", "naam", "telefoon", "email", "datum", "tijd"].forEach(function (k) { setErr(k); });
       var ok = true;
       if (!vals.dienst) { setErr("dienst", "Kies een dienst."); ok = false; }
       if (!vals.naam) { setErr("naam", "Vul je naam in."); ok = false; }
       else if (vals.naam.length < 2) { setErr("naam", "Vul minimaal 2 tekens in."); ok = false; }
       if (!vals.telefoon) { setErr("telefoon", "Vul je telefoonnummer in."); ok = false; }
       else if (!/^[0-9+\s()-]{8,}$/.test(vals.telefoon)) { setErr("telefoon", "Vul een geldig telefoonnummer in (min. 8 cijfers)."); ok = false; }
+      if (vals.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vals.email)) { setErr("email", "Vul een geldig e-mailadres in (of laat leeg)."); ok = false; }
       if (!vals.datum) { setErr("datum", "Kies een datum."); ok = false; }
       else if (vals.datum < localToday()) { setErr("datum", "Kies een datum in de toekomst."); ok = false; }
       if (!vals.tijd) { setErr("tijd", "Kies een tijd hierboven."); ok = false; }
@@ -429,6 +437,7 @@
         aanbetaling: cfg.aanbetaling || 0,
         naam: vals.naam,
         telefoon: vals.telefoon,
+        email: vals.email,
         datum: vals.datum,
         tijd: vals.tijd,
         auto: vals.auto,

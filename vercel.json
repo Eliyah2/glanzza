@@ -16,7 +16,7 @@
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         { "key": "X-DNS-Prefetch-Control", "value": "on" },
         { "key": "Cache-Control", "value": "public, max-age=0, s-maxage=60, stale-while-revalidate=600, stale-if-error=86400" },
-        { "key": "Link", "value": "</assets/css/style.css>; rel=preload; as=style; fetchpriority=high, <https://script.google.com>; rel=preconnect; crossorigin, <https://script.googleusercontent.com>; rel=preconnect; crossorigin" },
+        { "key": "Link", "value": "</assets/css/style.css?v=20261027-2>; rel=preload; as=style; fetchpriority=high, <https://script.google.com>; rel=preconnect; crossorigin, <https://script.googleusercontent.com>; rel=preconnect; crossorigin" },
         { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://script.google.com https://script.googleusercontent.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://script.google.com" }
       ]
     },

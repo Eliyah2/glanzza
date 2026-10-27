@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Glanzza — Aanmelden als bedrijf</title>
-  <meta name="description" content="Meld je bedrijf aan en maak in 5 minuten je eigen boekingspagina met Wero-aanbetaling." />
+  <meta name="description" content="Meld je bedrijf aan en maak in 5 minuten je eigen boekingspagina met online boeken, automatische herinnering en een aanbetaling via jouw eigen betaallink." />
   <meta name="theme-color" content="#070a0e" />
   <meta name="color-scheme" content="dark" />
   <meta http-equiv="x-dns-prefetch-control" content="on" />
@@ -12,8 +12,8 @@
   <link rel="preconnect" href="https://script.google.com" crossorigin />
   <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
   <link rel="dns-prefetch" href="https://script.google.com" />
-  <link rel="preload" href="assets/css/style.css" as="style" fetchpriority="high" />
-  <link rel="stylesheet" href="assets/css/style.css" fetchpriority="high" />
+  <link rel="preload" href="assets/css/style.css?v=20261027-2" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027-2" fetchpriority="high" />
   <link rel="prefetch" href="index.html" />
   <link rel="prefetch" href="boeken.html" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
@@ -38,6 +38,9 @@
     .add-svc { display:inline-flex; align-items:center; gap:7px; color:var(--brand); font-weight:600; font-size:.9rem; margin:4px 0 20px; }
     .done { display:none; margin-top:22px; padding:18px; border-radius:var(--r); background:var(--brand-soft); border:1px solid rgba(201,242,77,.4); }
     .done.show { display:block; animation:fade .3s ease; }
+    .quickpick { display:flex; gap:8px; flex-wrap:wrap; }
+    .quickpick button { padding:7px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--dim); font-size:.82rem; font-weight:600; transition:border-color .15s ease,color .15s ease,background .15s ease; }
+    .quickpick button:hover { border-color:var(--brand); color:var(--text); background:var(--bg-1); }
     @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
     .link-box { display:flex; gap:8px; margin:12px 0; align-items:center; }
     .link-box input { flex:1; padding:11px 12px; border-radius:9px; border:1px solid var(--border); background:var(--bg-1); color:var(--text); font-size:.9rem; }
@@ -77,13 +80,21 @@
                 <span class="field__err" data-for="id"></span>
               </div>
               <div class="field">
-                <label for="aanbetaling">Aanbetaling (€)</label>
-                <input id="aanbetaling" name="aanbetaling" type="number" min="0" step="1" value="50" required />
+                <label for="aanbetaling">Aanbetaling per boeking (€)</label>
+                <input id="aanbetaling" name="aanbetaling" type="number" min="0" step="1" value="50" inputmode="decimal" required />
+                <span class="field__hint">Wat je klant bij het boeken betaalt. 0 = geen aanbetaling. Nooit hoger dan je goedkoopste dienst.</span>
+                <div class="quickpick" id="aanb-quick" role="group" aria-label="Snel een aanbetaling kiezen">
+                  <button type="button" data-amt="0">Geen</button>
+                  <button type="button" data-amt="10">€10</button>
+                  <button type="button" data-amt="25">€25</button>
+                  <button type="button" data-amt="50">€50</button>
+                </div>
               </div>
             </div>
             <div class="field">
-              <label for="betaalLink">Wero / Tikkie-betaallink (optioneel)</label>
+              <label for="betaalLink">Jouw betaallink voor de aanbetaling (optioneel)</label>
               <input id="betaalLink" name="betaalLink" type="url" placeholder="https://tikkie.me/..." />
+              <span class="field__hint">Je eigen Tikkie-, Wero- of betaalverzoeklink. Klanten betalen rechtstreeks aan jou — Glanzza verwerkt zelf geen betalingen.</span>
             </div>
             <div class="row2">
               <div class="field">
@@ -159,7 +170,7 @@
 
     // === Eerste maand gratis? (feedback-fase) — zet op false om direct betaling te vragen ===
     var EERSTE_MAAND_GRATIS = true;
-    // === Jouw betaalgegevens — hiermee betalen bedrijven hun abonnement (€15 founders, daarna €25) ===
+    // === Jouw betaalgegevens — hiermee betalen bedrijven hun abonnement (€15 founders, daarna €19) ===
     // IBAN (handmatig) — werkt altijd. Vul hier je ABN AMRO IBAN al in (staat goed).
     var BETAAL_IBAN = "NL20RBRB0200418939";
     var BETAAL_NAAM = "Eliyah Impelmans";
@@ -201,6 +212,12 @@
       return el;
     }
     document.getElementById("add-svc").addEventListener("click", function () { dienstenBox.appendChild(serviceRow()); });
+    var aanbQuick = document.getElementById("aanb-quick");
+    if (aanbQuick) aanbQuick.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest("button[data-amt]") : null;
+      if (!b) return;
+      document.getElementById("aanbetaling").value = b.dataset.amt;
+    });
     dienstenBox.appendChild(serviceRow());
 
     var form = document.getElementById("onboard-form");
@@ -275,6 +292,12 @@
         ok = false;
       }
       if (!ok) return;
+      var minPrijs = Math.min.apply(null, diensten.map(function (d) { return Number(d.prijs) || 0; }));
+      if (aanb > minPrijs) {
+        status.setAttribute("data-state", "err");
+        status.textContent = "⚠️ Je aanbetaling (€" + aanb + ") is hoger dan je goedkoopste dienst (€" + minPrijs + "). Verlaag de aanbetaling.";
+        return;
+      }
 
       if (!CENTRAL_URL) {
         status.setAttribute("data-state", "err");

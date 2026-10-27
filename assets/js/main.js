@@ -34,15 +34,27 @@
   document.addEventListener("DOMContentLoaded", function () {
     // 1) Scroll-reveal — IntersectionObserver + stagger polish
     var els = document.querySelectorAll(".reveal");
-    if ("IntersectionObserver" in window) {
+    function revealAll() { els.forEach(function (el) { el.classList.add("in"); }); }
+    if ("IntersectionObserver" in window && els.length) {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
           if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
         });
       }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
       els.forEach(function (el) { io.observe(el); });
+      // Vangnet: de inhoud mag nooit onzichtbaar blijven als de observer niet vuurt
+      // (extensie, beperkte browser, tab zonder frames). In een normale browser
+      // vuurt de test-observer direct en is dit een no-op.
+      (function () {
+        var works = false;
+        try {
+          var probe = new IntersectionObserver(function () { works = true; probe.disconnect(); });
+          probe.observe(document.body);
+        } catch (e) { revealAll(); return; }
+        setTimeout(function () { if (!works) revealAll(); }, 1200);
+      })();
     } else {
-      els.forEach(function (el) { el.classList.add("in"); });
+      revealAll();
     }
 
     // 2) Mobiel menu — focus trap + ESC close

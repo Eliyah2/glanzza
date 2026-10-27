@@ -7,8 +7,8 @@
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#070a0e" />
   <meta name="color-scheme" content="dark" />
-  <link rel="preload" href="assets/css/style.css" as="style" fetchpriority="high" />
-  <link rel="stylesheet" href="assets/css/style.css" fetchpriority="high" />
+  <link rel="preload" href="assets/css/style.css?v=20261027-2" as="style" fetchpriority="high" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20261027-2" fetchpriority="high" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070a0e'/%3E%3Ctext x='16' y='23' font-size='18' font-weight='800' text-anchor='middle' fill='%23c9f24d' font-family='Arial'%3EG%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -30,6 +30,9 @@
     .dagen label { display:flex; align-items:center; gap:6px; color:var(--dim); font-size:.9rem; cursor:pointer; }
     .done { display:none; margin-top:22px; padding:18px; border-radius:var(--r); background:var(--brand-soft); border:1px solid rgba(201,242,77,.4); }
     .done.show { display:block; }
+    .quickpick { display:flex; gap:8px; flex-wrap:wrap; }
+    .quickpick button { padding:7px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--dim); font-size:.82rem; font-weight:600; transition:border-color .15s ease,color .15s ease,background .15s ease; }
+    .quickpick button:hover { border-color:var(--brand); color:var(--text); background:var(--bg-1); }
     @media (max-width:520px){ .svc__row{grid-template-columns:1fr 1fr 34px} .svc__row input:nth-child(3){grid-column:1/-1} .row2{grid-template-columns:1fr} }
   </style>
 </head>
@@ -58,8 +61,15 @@
             </div>
             <div class="row2">
               <div class="field">
-                <label for="aanbetaling">Aanbetaling (€)</label>
-                <input id="aanbetaling" name="aanbetaling" type="number" min="0" step="1" />
+                <label for="aanbetaling">Aanbetaling per boeking (€)</label>
+                <input id="aanbetaling" name="aanbetaling" type="number" min="0" step="1" inputmode="decimal" />
+                <span class="field__hint">Wat jouw klant bij het boeken betaalt. 0 = geen aanbetaling. Nooit hoger dan je goedkoopste dienst.</span>
+                <div class="quickpick" id="aanb-quick" role="group" aria-label="Snel een aanbetaling kiezen">
+                  <button type="button" data-amt="0">Geen</button>
+                  <button type="button" data-amt="10">€10</button>
+                  <button type="button" data-amt="25">€25</button>
+                  <button type="button" data-amt="50">€50</button>
+                </div>
               </div>
               <div class="field">
                 <label for="email">E-mail (voor meldingen)</label>
@@ -145,6 +155,12 @@
       return el;
     }
     document.getElementById("add-svc").addEventListener("click", function () { dienstenBox.appendChild(serviceRow()); });
+    var aanbQuick = document.getElementById("aanb-quick");
+    if (aanbQuick) aanbQuick.addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest("button[data-amt]") : null;
+      if (!b) return;
+      document.getElementById("aanbetaling").value = b.dataset.amt;
+    });
 
     function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
     function loadConfig(cb) {
@@ -208,6 +224,8 @@
       });
       if (dienstFout) { status.setAttribute("data-state","err"); status.textContent="⚠️ Vul elke dienst volledig in (naam + prijs)."; return; }
       if (diensten.length===0) { status.setAttribute("data-state","err"); status.textContent="⚠️ Voeg minimaal één dienst toe."; return; }
+      var minPrijs = Math.min.apply(null, diensten.map(function (d) { return Number(d.prijs) || 0; }));
+      if (aanbVal > minPrijs) { status.setAttribute("data-state","err"); status.textContent = "⚠️ Je aanbetaling (€" + aanbVal + ") is hoger dan je goedkoopste dienst (€" + minPrijs + "). Verlaag de aanbetaling."; return; }
       var gesloten = Array.prototype.map.call(document.querySelectorAll("#dagen input:checked"), function (x) { return x.value; }).join(",");
       var data = {
         type: "update", id: id, code: code,
